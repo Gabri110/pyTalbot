@@ -1,10 +1,10 @@
-import os
+import os,io
 import numpy as np
 from tqdm import tqdm
 import numpy as np
 
 from talbot_utils import generate_amplitude_field, resize_field, plot_field
-from video_maker import pdf_to_images, create_video_from_images
+from video_maker import create_video_from_images, collect_images
 from datetime import datetime
 
 
@@ -24,13 +24,16 @@ class TalbotConfig:
         self.N_x = 27*10 # Number of samples in x direction
         self.N_z = 192*10 # Number of samples in z direction
         self.N_t = 500 # Number of samples in time
-        self.N_max = int(self.d / self._lambda * 4) # Number of terms in the series
+        self.N_max = int(self.d / self._lambda * 5) # Number of terms in the series
 
         # Other relevant magnitudes
-        self.last_t_zT = 1. # Final time / Z_t
-        self.delta_t = self.z_T/self.c/(self.N_t-1) * self.last_t_zT # Time between photos
+        self.initial_t_zT = 0. # Initial time / Z_t
+        self.final_t_zT = 1.5 # Final time / Z_t
+        self.delta_t = self.z_T/self.c/(self.N_t-1) * (self.final_t_zT - self.initial_t_zT) # Time between photos
         self.delta_x = self.d/2/self.N_x # X-Distance between points
         self.delta_z = self.z_T/self.N_z # Z-Distance between points
+
+        self.make_video = True # Do we make a video?
 
 
     def __str__(self):
@@ -49,14 +52,27 @@ class TalbotConfig:
             "Time between photos (delta_t)": self.delta_t,
             "X-Distance between points (delta_x)": self.delta_x,
             "Z-Distance between points (delta_z)": self.delta_z,
-            "Final time / z_T": self.last_t_zT
+            "Initial time / z_T": self.initial_t_zT,
+            "Final time / z_T": self.final_t_zT
         }
         
-        print("{:<45} {:<40}".format('\nParameter', 'Value'))
-        print("-" * 65)
+        # Create a string stream to capture the print output
+        output = io.StringIO()
+        
+        # Print to the string stream instead of the console
+        output.write("{:<45} {:<40}\n".format('Parameter', 'Value'))
+        output.write("-" * 65 + "\n")
+        
         for key, value in params.items():
-            print("{:<45} {:<40}".format(key, value))
-        return ""
+            output.write("{:<45} {:<40}\n".format(key, value))
+        
+        # Get the string from the output stream
+        result = output.getvalue()
+        
+        # Close the string stream
+        output.close()
+        
+        return result
     
     def debugging(self):
         if self.Debugging:
@@ -77,25 +93,40 @@ if __name__ == "__main__":
 
     print(config)
 
-    # Photo destination
-    my_path = os.path.dirname(os.path.abspath(__file__))
-    folder_name = 'd_λ=' + str(config.d/config._lambda) + '_w_λ=' + str(config.w/config._lambda) + str(datetime.now())
-    folder_path = os.path.join(my_path, folder_name)
-
-    # Create the folder if it doesn't exist
-    if not os.path.isdir(folder_path):
-        os.makedirs(folder_path)
-
     field = generate_amplitude_field(config)
     field = field**2
     field = resize_field(field, config)
 
+
+    # Photo destination
+    my_path = os.path.dirname(os.path.abspath(__file__))
+    main_folder_path = os.path.join(my_path, '..')
+    results_path = os.path.join(main_folder_path, 'results')
+    # Create the results folder if it doesn't exist
+    if not os.path.isdir(results_path):
+        os.makedirs(results_path)
+
+    folder_name = 'd_λ=' + str(config.d/config._lambda) + '_w_λ=' + str(config.w/config._lambda) + str(datetime.now())
+    folder_path = os.path.join(results_path, folder_name)
+    # Create the folder if it doesn't exist
+    if not os.path.isdir(folder_path):
+        os.makedirs(folder_path)
+
+    # Save the parameters of the simulation into a file
+    with open(os.path.join(folder_path, 'parameters.txt'), 'w') as file:
+        file.write(str(config)) 
+
+    
     for t_i in tqdm(range(0, config.N_t)):
         plot_field(t_i, field, config, folder_path, save_field = False)
 
-    # Convert PDFs to images
-    image_files = pdf_to_images(folder_path)
+    if config.make_video:
+        # Convert PDFs to images
+        #image_files = pdf_to_images(folder_path)
 
-    # Create video
-    output_path = os.path.join(folder_path, 'Talbot_carpet_d_λ=' + str(1/config._lambda) + '_w_λ=' + str(config.w/config._lambda)+'_' + str(t_i) + '.mp4')
-    create_video_from_images(image_files, output_path)
+        # Collect the images
+        image_files = collect_images(folder_path)
+
+        # Create video
+        output_path = os.path.join(my_path, 'Talbot_carpet_d_λ=' + str(1/config._lambda) + '_w_λ=' + str(config.w/config._lambda) + '.mp4')
+        create_video_from_images(image_files, output_path)

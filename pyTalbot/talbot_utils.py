@@ -3,9 +3,22 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.special import j1
 from scipy.integrate import quad
-from numba import njit # Remember to also have numba-scipy installed!!!!!
+from scipy import LowLevelCallable
+from numba import njit,cfunc, carray # Remember to also have numba-scipy installed!!!!!
+from numba.types import intc, CPointer, float64
 
 from tqdm import tqdm
+
+
+def jit_integrand_function(integrand_function):
+    jitted_function = njit(integrand_function,error_model="numpy",fastmath=True)
+
+    @cfunc(float64(intc, CPointer(float64)))
+    def wrapped(n, xx):
+        ar = carray(xx, n)
+        
+        return jitted_function(ar[0], ar[1:])
+    return LowLevelCallable(wrapped.ctypes)
 
 
 
@@ -19,7 +32,7 @@ def perform_integrals(config):
     k_n_values = 2 * np.pi * n_values
 
     # We store the range of t, z in the arrays of dimension (N_t) and (N_z)
-    t_values = np.linspace(0, config.N_t*config.delta_t, config.N_t)
+    t_values = np.linspace(config.z_T/config.c * config.initial_t_zT, config.z_T/config.c * config.final_t_zT, config.N_t)
     z_values = np.linspace(0, config.N_z*config.delta_z, config.N_z)
 
     # Preallocate the result arrays (shape: len(n_values) x len(z_values))
@@ -34,16 +47,18 @@ def perform_integrals(config):
 
 
     # We define the integrand and JIT it with Numba (and numba-scipy) for a faster performance
-    @njit
-    def integrand_sin(tau,k,t,z,omega, epsilon=1e-7):
+    @jit_integrand_function
+    def integrand_sin(tau, args):
+        k,z,omega, epsilon = args 
         u = np.sqrt(np.maximum(0,tau**2 - z**2))
         if u < epsilon:
             return np.sin(omega * tau)*k/2
         else:
             return np.sin(omega * tau) * j1(k * u) / u # TO UPDATE
         
-    @njit
-    def integrand_cos(tau,k,t,z,omega, epsilon=1e-7):
+    @jit_integrand_function
+    def integrand_cos(tau, args):
+        k,z,omega, epsilon = args 
         u = np.sqrt(np.maximum(0,tau**2 - z**2))
         if u < epsilon:
             return np.cos(omega * tau)*k/2
@@ -59,8 +74,8 @@ def perform_integrals(config):
     for n in tqdm(range(1, len(n_values))): # We skip the n=0 case as it is trivially = 0
         for i in range(1, len(t_values)): # We skip the t=0 case as it is trivially = 0
             for j in range(1, len(z_values)): # We skip the z=0 case as it is trivially = 0
-                partial_integral_sin[n,i,j],_ = quad(integrand_sin, x_min[i,j], x_max[i,j], args=(k_n_values[n],t_values[i],z_values[j],config.omega, 1e-7), limit=10000, epsabs=1e-7, epsrel=1e-4) # We use quad
-                partial_integral_cos[n,i,j],_ = quad(integrand_cos, x_min[i,j], x_max[i,j], args=(k_n_values[n],t_values[i],z_values[j],config.omega, 1e-7), limit=10000, epsabs=1e-7, epsrel=1e-4) # We use quad
+                partial_integral_sin[n,i,j],_ = quad(integrand_sin, x_min[i,j], x_max[i,j], args=(k_n_values[n],z_values[j],config.omega, 1e-7), limit=10000, epsabs=1e-7, epsrel=1e-4) # We use quad
+                partial_integral_cos[n,i,j],_ = quad(integrand_cos, x_min[i,j], x_max[i,j], args=(k_n_values[n],z_values[j],config.omega, 1e-7), limit=10000, epsabs=1e-7, epsrel=1e-4) # We use quad
 
 
     # Initialize the result array
@@ -93,12 +108,10 @@ def generate_coeffs(config):
     '''
     This function computes the coefficients c_n(t,z) for each allowed value of n,t,z for the parameters in config.
     We implicitly use the pylevin package and the integrate routine to take care of the integration.
-
-    TODO: We still have to deal with the n=gn=0 case.
     '''
 
     # We store the range of t, z in the arrays of dimension (N_t) and (N_z)
-    t_values = np.linspace(0, config.N_t*config.delta_t, config.N_t)
+    t_values = np.linspace(config.z_T/config.c * config.initial_t_zT, config.z_T/config.c * config.final_t_zT, config.N_t)
     z_values = np.linspace(0, config.N_z*config.delta_z, config.N_z)
 
     # We store the range of n, kn and gn in arrays of length N_max
@@ -126,21 +139,35 @@ def generate_coeffs(config):
 def generate_amplitude_field(config):
     coeffs = generate_coeffs(config)
 
-    field = np.zeros([config.N_t, config.N_x, config.N_z])
     k_n = 2 * np.pi * np.arange(config.N_max)
 
     # Create the grid for the cosine terms
     x_grid = np.arange(config.N_x) * config.delta_x
     cos_values = np.cos(np.outer(k_n, x_grid))
-    del x_grid
+    del x_grid, k_n
 
-    # Compute the contribution to E from the cosine term. 
-    # For this we expand dimensions of coeffs and cos_values to match the desired broadcast shape.
-    # New shapes:       (N_max, N_t, 1, N_z)        (N_max, 1, N_x,1)
-    field_update = coeffs[:, :, np.newaxis, :] * cos_values[:, np.newaxis, :, np.newaxis]
+    field = np.zeros([config.N_t, config.N_x, config.N_z])
+    
+    #field_update = coeffs[:, :, np.newaxis, :] * cos_values[:, np.newaxis, :, np.newaxis]
+
+
+    # Iterate over chunks of n axis to avoid memory problems
+    chunk_size = 3  # Choose a reasonable chunk size based on available memory
+    for i in tqdm(range(0, coeffs.shape[0], chunk_size)):
+        chunk_coeffs = coeffs[i:i+chunk_size]
+        chunk_cos_values = cos_values[i:i+chunk_size]
+        
+        # Compute the chunk of the contribution to E from the cosine term. 
+        # For this we expand dimensions of coeffs and cos_values to match the desired broadcast shape.
+        # New shapes:       (N_max, N_t, 1, N_z)        (N_max, 1, N_x,1)
+        field_update_chunk = chunk_coeffs[:, :, np.newaxis, :] * chunk_cos_values[:, np.newaxis, :, np.newaxis]
+        
+        # Sum over n (along axis 0) and add to the field
+        field += np.sum(field_update_chunk, axis=0)
+    del cos_values, coeffs, chunk_coeffs, chunk_cos_values, field_update_chunk
 
     # Sum over n (along axis 0) to update E
-    field += np.sum(field_update, axis = 0)  # Shape: (N_t, N_x, N_z)
+    #field = np.sum(field_update, axis = 0)  # Shape: (N_t, N_x, N_z)
     return field
 
 
@@ -183,7 +210,7 @@ def plot_field(t_i, field, config, folder_path, save_field = False):
     #cbar.set_label(label = 'Amplitude of the field', fontsize = 18)
     #cbar.ax.set_yticklabels(['$-A$', '$-\\dfrac{A}{2}$', '$0$', '$\\dfrac{A}{2}$', '$A$'], fontsize = 16)
 
-    file_name = 'd_λ=' + str(1/config._lambda) + '_w_λ=' + str(config.w/config._lambda)+'_' + str(t_i) + '_carpet.pdf'
+    file_name = 'd_λ=' + str(1/config._lambda) + '_w_λ=' + str(config.w/config._lambda)+'_' + str(t_i) + '_carpet.png'
     plt.savefig(os.path.join(folder_path, file_name), bbox_inches = 'tight', dpi = 300)  
     plt.close()
 
