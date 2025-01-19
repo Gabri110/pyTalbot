@@ -22,12 +22,12 @@ class TalbotConfig:
         # Simulation parameters
         self.N_x = 27*10 # Number of samples in x direction
         self.N_z = 192*10 # Number of samples in z direction
-        self.N_t = 5 # Number of samples in time
+        self.N_t = 500 # Number of samples in time
         self.N_max = int(self.d / self._lambda * 5) # Number of terms in the series
 
         # Other relevant magnitudes
         self.initial_t_zT = 0. # Initial time / Z_t
-        self.final_t_zT = 0.05 # Final time / Z_t
+        self.final_t_zT = 1.5 # Final time / Z_t
         self.delta_t = self.z_T/self.c/(self.N_t-1) * (self.final_t_zT - self.initial_t_zT) # Time between photos
         self.delta_x = self.d/2/self.N_x # X-Distance between points
         self.delta_z = self.z_T/self.N_z # Z-Distance between points
@@ -73,23 +73,9 @@ class TalbotConfig:
         
         return result
     
-    def debugging(self):
-        if self.Debugging:
-            # Simulation parameters
-            self.N_x = 6 # Number of samples in x direction
-            self.N_z = 6 # Number of samples in z direction
-            self.N_t = 5 # Number of samples in time
-            self.N_max = int(self.d / self._lambda)*2 # Number of terms in the series
-
-        return
 
 if __name__ == "__main__":
     config = TalbotConfig()
-
-    # Are we debugging?
-    config.Debugging = False
-    config.debugging()
-
     print(config)
 
     field = generate_amplitude_field(config)
