@@ -1,10 +1,5 @@
-import os,io
+import io
 import numpy as np
-from tqdm import tqdm
-
-from talbot_utils import generate_amplitude_field, resize_field
-from video_maker import create_video_from_images, plot_field
-from datetime import datetime
 
 
 class TalbotConfig:
@@ -27,7 +22,7 @@ class TalbotConfig:
 
         # Other relevant magnitudes
         self.initial_t_zT = 0. # Initial time / Z_t
-        self.final_t_zT = 1.5 # Final time / Z_t
+        self.final_t_zT = 2. # Final time / Z_t
         self.delta_t = self.z_T/self.c/(self.N_t-1) * (self.final_t_zT - self.initial_t_zT) # Time between photos
         self.delta_x = self.d/2/self.N_x # X-Distance between points
         self.delta_z = self.z_T/self.N_z # Z-Distance between points
@@ -72,40 +67,3 @@ class TalbotConfig:
         output.close()
         
         return result
-    
-
-if __name__ == "__main__":
-    config = TalbotConfig()
-    print(config)
-
-    field = generate_amplitude_field(config)
-    field = field**2
-    field = resize_field(field, config)
-
-
-    # Photo destination
-    my_path = os.path.dirname(os.path.abspath(__file__))
-    main_folder_path = os.path.join(my_path, '..')
-    results_path = os.path.join(main_folder_path, 'results')
-    # Create the results folder if it doesn't exist
-    if not os.path.isdir(results_path):
-        os.makedirs(results_path)
-
-    folder_name = 'd_λ=' + str(config.d/config._lambda) + '_w_λ=' + str(config.w/config._lambda) + '_' + datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    folder_path = os.path.join(results_path, folder_name)
-    # Create the folder if it doesn't exist
-    if not os.path.isdir(folder_path):
-        os.makedirs(folder_path)
-
-    # Save the parameters of the simulation into a file
-    with open(os.path.join(folder_path, 'parameters.txt'), 'w') as file:
-        file.write(str(config)) 
-
-    
-    for t_i in tqdm(range(0, config.N_t)):
-        plot_field(t_i, field, config, folder_path, save_field = False)
-
-    if config.make_video:
-        # Create video
-        output_name = 'Talbot_carpet_d_λ=' + str(1/config._lambda) + '_w_λ=' + str(config.w/config._lambda) + '.mp4'
-        create_video_from_images(folder_path, output_name)
