@@ -17,7 +17,7 @@ class TalbotConfig:
         # Simulation parameters
         self.N_x = 27*10 # Number of samples in x direction
         self.N_z = 192*10 # Number of samples in z direction
-        self.N_t = 500 # Number of samples in time
+        self.N_t = 250 # Number of samples in time
         self.N_max = int(self.d / self._lambda * 5) # Number of terms in the series
 
         # Other relevant magnitudes

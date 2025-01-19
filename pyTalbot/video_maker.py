@@ -43,7 +43,7 @@ def plot_field(t_i, field, config, folder_path, save_field = False):
 
 
 
-def create_video_from_images(images_path, output_name, fps=30):
+def create_video_from_images(images_path, output_name, fps=24):
     if not os.path.exists(os.path.dirname(images_path)):
         os.makedirs(os.path.dirname(images_path))
         

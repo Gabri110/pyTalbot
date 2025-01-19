@@ -147,7 +147,7 @@ def generate_amplitude_field(config):
     field = np.zeros([config.N_t, config.N_x, config.N_z])
 
     # Iterate over chunks of n axis to avoid memory problems
-    chunk_size = 3  # Choose a reasonable chunk size based on available memory
+    chunk_size = 2  # Choose a reasonable chunk size based on available memory
     for i in tqdm(range(0, coeffs.shape[0], chunk_size)):
         chunk_coeffs = coeffs[i:i+chunk_size]
         chunk_cos_values = cos_values[i:i+chunk_size]
@@ -159,7 +159,8 @@ def generate_amplitude_field(config):
         
         # Sum over n (along axis 0) and add to the field
         field += np.sum(field_update_chunk, axis=0)
-    del cos_values, coeffs, chunk_coeffs, chunk_cos_values, field_update_chunk
+        del field_update_chunk
+    del cos_values, coeffs, chunk_coeffs, chunk_cos_values
 
     return field
 
