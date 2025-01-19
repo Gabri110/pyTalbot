@@ -1,10 +1,9 @@
 import os,io
 import numpy as np
 from tqdm import tqdm
-import numpy as np
 
-from talbot_utils import generate_amplitude_field, resize_field, plot_field
-from video_maker import create_video_from_images, collect_images
+from talbot_utils import generate_amplitude_field, resize_field
+from video_maker import create_video_from_images, plot_field
 from datetime import datetime
 
 
@@ -23,12 +22,12 @@ class TalbotConfig:
         # Simulation parameters
         self.N_x = 27*10 # Number of samples in x direction
         self.N_z = 192*10 # Number of samples in z direction
-        self.N_t = 500 # Number of samples in time
+        self.N_t = 5 # Number of samples in time
         self.N_max = int(self.d / self._lambda * 5) # Number of terms in the series
 
         # Other relevant magnitudes
         self.initial_t_zT = 0. # Initial time / Z_t
-        self.final_t_zT = 1.5 # Final time / Z_t
+        self.final_t_zT = 0.05 # Final time / Z_t
         self.delta_t = self.z_T/self.c/(self.N_t-1) * (self.final_t_zT - self.initial_t_zT) # Time between photos
         self.delta_x = self.d/2/self.N_x # X-Distance between points
         self.delta_z = self.z_T/self.N_z # Z-Distance between points
@@ -77,8 +76,8 @@ class TalbotConfig:
     def debugging(self):
         if self.Debugging:
             # Simulation parameters
-            self.N_x = 5 # Number of samples in x direction
-            self.N_z = 5 # Number of samples in z direction
+            self.N_x = 6 # Number of samples in x direction
+            self.N_z = 6 # Number of samples in z direction
             self.N_t = 5 # Number of samples in time
             self.N_max = int(self.d / self._lambda)*2 # Number of terms in the series
 
@@ -88,7 +87,7 @@ if __name__ == "__main__":
     config = TalbotConfig()
 
     # Are we debugging?
-    config.Debugging = True
+    config.Debugging = False
     config.debugging()
 
     print(config)
@@ -106,7 +105,7 @@ if __name__ == "__main__":
     if not os.path.isdir(results_path):
         os.makedirs(results_path)
 
-    folder_name = 'd_λ=' + str(config.d/config._lambda) + '_w_λ=' + str(config.w/config._lambda) + str(datetime.now())
+    folder_name = 'd_λ=' + str(config.d/config._lambda) + '_w_λ=' + str(config.w/config._lambda) + '_' + datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     folder_path = os.path.join(results_path, folder_name)
     # Create the folder if it doesn't exist
     if not os.path.isdir(folder_path):
@@ -121,12 +120,6 @@ if __name__ == "__main__":
         plot_field(t_i, field, config, folder_path, save_field = False)
 
     if config.make_video:
-        # Convert PDFs to images
-        #image_files = pdf_to_images(folder_path)
-
-        # Collect the images
-        image_files = collect_images(folder_path)
-
         # Create video
-        output_path = os.path.join(my_path, 'Talbot_carpet_d_λ=' + str(1/config._lambda) + '_w_λ=' + str(config.w/config._lambda) + '.mp4')
-        create_video_from_images(image_files, output_path)
+        output_name = 'Talbot_carpet_d_λ=' + str(1/config._lambda) + '_w_λ=' + str(config.w/config._lambda) + '.mp4'
+        create_video_from_images(folder_path, output_name)

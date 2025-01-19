@@ -1,6 +1,5 @@
 import os
 import numpy as np
-import matplotlib.pyplot as plt
 from scipy.special import j1
 from scipy.integrate import quad
 from scipy import LowLevelCallable
@@ -19,7 +18,6 @@ def jit_integrand_function(integrand_function):
         
         return jitted_function(ar[0], ar[1:])
     return LowLevelCallable(wrapped.ctypes)
-
 
 
 def perform_integrals(config):
@@ -147,9 +145,6 @@ def generate_amplitude_field(config):
     del x_grid, k_n
 
     field = np.zeros([config.N_t, config.N_x, config.N_z])
-    
-    #field_update = coeffs[:, :, np.newaxis, :] * cos_values[:, np.newaxis, :, np.newaxis]
-
 
     # Iterate over chunks of n axis to avoid memory problems
     chunk_size = 3  # Choose a reasonable chunk size based on available memory
@@ -166,8 +161,6 @@ def generate_amplitude_field(config):
         field += np.sum(field_update_chunk, axis=0)
     del cos_values, coeffs, chunk_coeffs, chunk_cos_values, field_update_chunk
 
-    # Sum over n (along axis 0) to update E
-    #field = np.sum(field_update, axis = 0)  # Shape: (N_t, N_x, N_z)
     return field
 
 
@@ -179,42 +172,3 @@ def resize_field(field, config):
     resized_field[:,2*config.N_x:3*config.N_x,:] = field[:,0:config.N_x,:]
     resized_field[:,3*config.N_x:4*config.N_x,:] = field[:,reversed_order, :]
     return resized_field
-
-
-def plot_field(t_i, field, config, folder_path, save_field = False):
-    cm = 1/2.54
-    plt.figure(figsize=(32*cm, 18*cm))
-    plt.title('Gauge Field at $t = ' + str(round(t_i * config.delta_t/(config.z_T),4)) + '\\, Z_T/c$ for $\\frac{d}{\\lambda}='+str(1/config._lambda)+'$ and $\\frac{w}{\\lambda}=' + str(config.w/config._lambda)+'$', fontsize = 20, y = 1.05)
-    
-    # Plot the Gauge Field
-    im = plt.imshow(field[t_i], cmap = 'gray', vmin = 0, vmax = (config.d/config.w)**2, interpolation = 'none')
-
-    # Label the X axis and set the ticks
-    plt.ylabel('Grating', fontsize = 18)
-    plt.ylim(0, 4 * config.N_x)
-    ticks_x = [0, config.N_x-1, 2 * config.N_x - 1, 3 * config.N_x - 1, 4 * config.N_x - 1]
-    labels_x = ['$-d$', '$-\\dfrac{d}{2}$', '$0$', '$\\dfrac{d}{2}$', '$d$']
-    plt.yticks(ticks_x, labels_x, fontsize = 16)
-    
-    # Label the Y axis and set the ticks
-    plt.xlabel('Propagation of light ---->', fontsize = 18)
-    plt.xlim(0, config.N_z - 1)
-    ticks_z = [0, config.N_z/4, config.N_z/2, 3 * config.N_z/4, config.N_z]
-    labels_z = ['$0$', '$\\dfrac{1}{4} Z_T$', '$\\dfrac{1}{2} Z_T$', '$\\dfrac{3}{4} Z_T$', '$Z_T$']
-    plt.xticks(ticks_z, labels_z, fontsize = 16)
-    
-    # Add the colorbar
-    cbar = plt.colorbar(im, ticks=[0., (config.d/config.w)**2/4, (config.d/config.w)**2/2, 3*(config.d/config.w)**2/4, (config.d/config.w)**2], fraction = 0.0458 * config.N_z/(4 * config.N_x), pad = 0.04, shrink = 0.9)
-    cbar.set_label(label = 'Intensity of the field', fontsize = 18)
-    cbar.ax.set_yticklabels(['$0$', '$\\dfrac{A^2}{4}$', '$\\dfrac{A^2}{2}$', '$\\dfrac{3A^2}{4}$', '$A^2$'], fontsize = 16)
-    #cbar.set_label(label = 'Amplitude of the field', fontsize = 18)
-    #cbar.ax.set_yticklabels(['$-A$', '$-\\dfrac{A}{2}$', '$0$', '$\\dfrac{A}{2}$', '$A$'], fontsize = 16)
-
-    file_name = 'd_λ=' + str(1/config._lambda) + '_w_λ=' + str(config.w/config._lambda)+'_' + str(t_i) + '_carpet.png'
-    plt.savefig(os.path.join(folder_path, file_name), bbox_inches = 'tight', dpi = 300)  
-    plt.close()
-
-    if save_field:
-        # Save the field at time t_i to a txt file
-        txt_file_name = 'd_λ=' + str(1/config._lambda) + '_w_λ=' + str(config.w/config._lambda)+'_' + str(t_i) + '_carpet.txt'
-        np.savetxt(os.path.join(folder_path, txt_file_name), field[t_i], delimiter=',')

@@ -1,5 +1,4 @@
 numba-scipy>=0.4.0
-opencv-python>=4.11.0.86
 numpy>=2.2.1
 tqdm>=4.67.1
 matplotlib>=3.10.0
