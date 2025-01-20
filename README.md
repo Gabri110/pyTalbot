@@ -11,21 +11,13 @@ You may install it from the terminal in Ubundu and Debian through
 ## The problem
 
 This project plots the solution to the 2D wave equation
-```math
-\dfrac{\partial^2 u}{\partial t^2} = \nabla^2 {u} \equiv \dfrac{\partial^2 u}{\partial x^2} + \dfrac{\partial^2 u}{\partial y^2} + \dfrac{\partial^2 u}{\partial z^2}, \tag{1.1}
-```
-in the domain $0 \leq x <= d/2$, $`z \geq 0$, $t \geq 0$ under the border conditions in $x$
-```math
-\left.\partial_x u\right\vert_{x=0} = \left.\partial_x u\right\vert_{x=d/2} = 0, \tag{1.2}
-```
+$$\dfrac{\partial^2 u}{\partial t^2} = \nabla^2 {u} \equiv \dfrac{\partial^2 u}{\partial x^2} + \dfrac{\partial^2 u}{\partial y^2} + \dfrac{\partial^2 u}{\partial z^2}, \tag{1.1}$$
+in the domain $0 \leq x <= d/2$, $z \geq 0$, $t \geq 0$ under the border conditions in $x$
+$$\left.\partial_x u\right\vert_{x=0} = \left.\partial_x u\right\vert_{x=d/2} = 0, \tag{1.2}$$
 the boundary conditions in $z$
-```math
-u(t,x,0) = f(t,x) = \sin(\omega t)\theta(t)\, \chi(x/w), \tag{1.3}
-```
+$$u(t,x,0) = f(t,x) = \sin(\omega t)\theta(t)\, \chi(x/w), \tag{1.3}$$
 and the initial conditions
-```math
-u(t=0) = 0,\quad\text{and,}\quad \partial_t u(t=0) = 0. \tag{1.4}
-```
+$$u(t=0) = 0,\quad\text{and,}\quad \partial_t u(t=0) = 0. \tag{1.4}$$
 All of this can be sumarised through the figure
 ![Alt text](./problem_statement.jpeg "Figure 1: Sketch of the differential equation and boundary conditions obeyed by the system.")
 
