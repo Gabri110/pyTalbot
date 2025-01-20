@@ -4,6 +4,25 @@ from numpy import savetxt
 
 
 def plot_field(t_i, field, config, folder_path, save_field = False):
+    '''Plots the field at time t_i and saves the image in folder_path as a PNG.
+
+    Parameters
+    ----------
+    t_i : float
+        Time of the image.
+    field : np.ndarray of floats
+        Field to be plotted. Must of size (N_t, 4 N_x, N_z).
+    config : TalbotConfig
+        Class storing the parameters of the simulation.
+    folder_path : string
+        Path where the image must be stored. The folder MUST exist.
+    save_field : bool, optional
+        Whether the image should be saved as a txt file alongside the PNG image.
+
+    Returns
+    -------
+    None
+    '''
     cm = 1/2.54
     plt.figure(figsize=(32*cm, 18*cm))
     plt.title('Intensity of the Field at $t = ' + str(round(t_i * config.delta_t/(config.z_T),4)) + '\\, Z_T/c$ for $\\frac{d}{\\lambda}='+str(1/config._lambda)+'$ and $\\frac{w}{\\lambda}=' + str(config.w/config._lambda)+'$', fontsize = 20, y = 1.05)
@@ -44,10 +63,24 @@ def plot_field(t_i, field, config, folder_path, save_field = False):
 
 
 def create_video_from_images(images_path, output_name, fps=24):
-    if not os.path.exists(os.path.dirname(images_path)):
+    '''Creates the video showcasing the formation of the Talbot effect.
+
+    Parameters
+    ----------
+    images_path : string
+        Path where the images are stored. The images name must be sorted and end with .png to be identified by this function. The video will be stored in this same path.
+    output_name : string
+        Name of the output file.
+    fps : int, optional
+        Framerate of the video
+
+    Returns
+    -------
+    None
+    '''
+
+    if not os.path.exists(os.path.dirname(images_path)): # We make sure that the images_path exists.
         os.makedirs(os.path.dirname(images_path))
         
     command = f'ffmpeg -framerate {fps} -pattern_type glob -i "{images_path}/*.png" -c:v libx264 -pix_fmt yuv420p "{images_path}/{output_name}"'
-    os.system(command)
-
-    return print("Video has been done.")
+    os.system(command) # We create the video
