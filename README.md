@@ -12,7 +12,7 @@ You may install it from the terminal in Ubundu and Debian through
 
 This project plots the solution to the 2D wave equation
 
-$$\dfrac{\partial^2 u}{\partial t^2} = \nabla^2 {u} \equiv \dfrac{\partial^2 u}{\partial x^2} + \dfrac{\partial^2 u}{\partial y^2} + \dfrac{\partial^2 u}{\partial z^2}, \tag{1.1}$$
+$$\partial_{tt} u = \partial_{xx} u + \partial_{yy} u + \partial_{zz} u$$
 
 in the domain $0 \leq x <= d/2$, $z \geq 0$, $t \geq 0$ under the border conditions in $x$
 

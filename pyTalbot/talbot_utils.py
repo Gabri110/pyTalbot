@@ -1,16 +1,44 @@
-import os
 import numpy as np
 from scipy.special import j1
 from scipy.integrate import quad
 from scipy import LowLevelCallable
-from numba import njit,cfunc, carray # Remember to also have numba-scipy installed!!!!!
+from numba import njit,cfunc, carray
 from numba.types import intc, CPointer, float64
 
 from tqdm import tqdm
 
 
+
+def g_n_rect_delta(n, config):
+    '''Computes the g_n of the Rect function NORMALISED so that it tends to the delta function.
+    For n =/= 0 we return g_n + g_{-n} = 2 g_n
+    
+    Parameters
+    ----------
+    n : np.ndarray of ints
+        The ns for which to cumpute g_n. Must be integers.
+
+    config : TalbotConfig
+        The class containing all the parameters of the simulation.
+    
+    Returns
+    -------
+    g_n : np.ndarray of floats
+        The values of the g_ns relative to each n.
+    '''
+
+    original_settings = np.seterr()
+    np.seterr(divide='ignore', invalid='ignore')
+    result = np.where(n == 0, 1, 2*np.sin(n * np.pi * config.w) / (np.pi * n * config.w**2)) # We multiply by 2 to account at the same time for g_n and g_(-n)
+    np.seterr(**original_settings)
+    return result
+
+
 def jit_integrand_function(integrand_function):
-    '''This method uses numba to accelerate the computation of the integrand through Just In Time compilation.
+    '''This method uses numba to accelerate the computation of the integrand through Just In Time compilation
+    and converts the function into a LowLevelCallable, which reduces the Python overhead while using Scipy's quad.
+
+    Credits to @max9111's response on StackOverflow (https://stackoverflow.com/a/79363327/24208929) for writting this function.
     
     Parameters
     ----------
@@ -120,32 +148,6 @@ def perform_integrals(config):
     result = np.sin(config.omega * t_values[None,:,None]) * resummed_integral_cos \
         - np.cos(config.omega * t_values[None,:,None]) * resummed_integral_sin # in(tau-t) = cos(t)sin(tau) - sin(t)cos(tau)
 
-    return result
-
-
-
-def g_n_rect_delta(n, config):
-    '''Computes the g_n of the Rect function NORMALISED so that it tends to the delta function.
-    For n =/= 0 we return g_n + g_{-n} = 2 g_n
-    
-    Parameters
-    ----------
-    n : np.ndarray of ints
-        The ns for which to cumpute g_n. Must be integers.
-
-    config : TalbotConfig
-        The class containing all the parameters of the simulation.
-    
-    Returns
-    -------
-    g_n : np.ndarray of floats
-        The values of the g_ns relative to each n.
-    '''
-
-    original_settings = np.seterr()
-    np.seterr(divide='ignore', invalid='ignore')
-    result = np.where(n == 0, 1, 2*np.sin(n * np.pi * config.w) / (np.pi * n * config.w**2)) # We multiply by 2 to account at the same time for g_n and g_(-n)
-    np.seterr(**original_settings)
     return result
 
 
