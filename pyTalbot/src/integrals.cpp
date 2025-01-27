@@ -1,6 +1,5 @@
 /*
-cos_integral.cpp
-Compile with    g++ -O3 cos_integral.cpp -lgsl -lgslcblas --shared -fPIC -o lib_cos_integral.so -fopenmp
+C++ code to compute the integrals.
 
 Credits to Jérôme Richard, who explained in this stackoverflow's answer stackoverflow.com/a/79360271/24208929 
 how to efficiently evaluate integrals in Python through the GSL library.

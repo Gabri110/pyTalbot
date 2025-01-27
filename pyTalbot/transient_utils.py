@@ -101,10 +101,10 @@ def perform_integrals(config):
     fast_integrals.compute_sin.restype = None
 
     # We perform the integrals
-    limit = 1_000_000
-    eps_abs = 1e-7
+    limit = 100_000
+    eps_abs = 1e-6
     eps_rel = 1e-3
-    epsilon = 1e-7
+    epsilon = 1e-6
 
     fast_integrals.compute_cos(
         ptr(partial_integral_cos), ptr(x_min), ptr(x_max), 

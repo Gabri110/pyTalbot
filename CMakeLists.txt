@@ -19,4 +19,3 @@ add_library(integrals SHARED
 # Links the compiled files to GSL 
 find_package(GSL REQUIRED)
 target_link_libraries(integrals GSL::gsl GSL::gslcblas)
-

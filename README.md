@@ -3,12 +3,15 @@
 This project's aim is to plot the formation of the Talbot effect in the near field of an infinite periodic diffraction grating of Fourier coefficients $g_n$. This corresponds to the numeric part of the attached report.
 
 ## Requirements
-In order to be able to create the video, it is indispensable to have [FFmpeg](https://www.ffmpeg.org/) installed.
 
-You may install it from the terminal in Ubundu and Debian through
-`sudo apt install ffmpeg` and on macOS through `brew install ffmpeg`.
+In order to get all the python required libraries, you may run from the main folder
+```
+pip install -r requirements.txt
+```
 
-It is also necessary to compile the C++ libraries used for integration. In order to do this, run from the main folder where the file CMakeList.txt is
+It is also necessary to compile the C++ libraries used for integration. For this you need GSL. You may install GSL from the terminal in Ubundu and Debian through `sudo apt install gsl` and on macOS through `brew install gsl`.
+
+To compile the libraries, run the following from the main folder, where the file CMakeList.txt is,
 ```
 mkdir build
 cd build
@@ -17,10 +20,9 @@ make
 make clean
 ```
 
-In order to get all the python required libraries, you may run from the main folder
-```
-pip install -r requirements.txt
-```
+In order to be able to create the video, it is indispensable to have [FFmpeg](https://www.ffmpeg.org/) installed.
+
+You may install it from the terminal in Ubundu and Debian through `sudo apt install ffmpeg` and on macOS through `brew install ffmpeg`.
 
 ## The problem
 
