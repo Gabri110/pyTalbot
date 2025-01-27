@@ -34,10 +34,12 @@ All of this can be sumarised through the figure
 The solution to this problem can be written in closed form: 
 ... (4.8)
 which is what we plot. The RHS is mostly straightforward to compute, although certain approximations must be made:
- - The most obvious, we have to introduce an $N$ at which we truncate the series. We usually want to take $N \gg \frac{d}{ \lambda}$ to make sure that we take into account all the oscillatory behaviour.
+  - The most obvious, we have to introduce an $N$ at which we truncate the series. We usually want to take $N \gg \frac{d}{ \lambda}$ to make sure that we take into account all the oscillatory behaviour.
   - We have to numerically approximate the integral. In order to do this, we use Scipy's adaptative quadrature method, [quad](https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.quad.html), which uses a technique from the Fortran library QUADPACK to compute the integral.
 
 After calculating $u(t,x,z)$ on a grid, we plot it and make an .mp4 video to showcase the transient behaviour of the Talbot effect.
+
+There is also the possibility to plot the state of the field at the final time considering the stationary approximation (see section 5 of the notes) and to compare its result to the transient case.
 
 
 ## Aknowledgements
@@ -45,11 +47,3 @@ After calculating $u(t,x,z)$ on a grid, we plot it and make an .mp4 video to sho
 This project was developped by Gabriel María Ybarra Marcaida under the supervision of [Luis Vega González](https://www.bcamath.org/en/people/bcam-members/lvega) during the authour's research internship at the [Basque Centre for Applied Mathematics](https://www.bcamath.org/en) in between November 2024 and February 2025.
 
 The authour would like to thank @miguelfrndz and @pcardenal5 with their help with programming issues throughout the development of the project.
-
-
-
-
-
-## TODO:
-
- - Add stationary solution. Maybe add the option to compare it to the transient one.

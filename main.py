@@ -1,26 +1,25 @@
-import os
+import os, shutil
 from tqdm import tqdm
 
-from pyTalbot.benchmarks_talbot import TalbotConfig
-from pyTalbot.talbot_utils import generate_amplitude_field, resize_field
-from pyTalbot.video_maker import create_video_from_images, plot_field
+from pyTalbot.talbotconfig import TalbotConfig
+from pyTalbot.transient_utils import generate_amplitude_field, resize_field
+from pyTalbot.stationary_utils import generate_stationary_amplitude_field, resize_stationary_field
+from pyTalbot.plotter import video_from_images, plot_field
 from datetime import datetime
 
-
+##################################
 # Configuration of the simulation.
+##################################
+
+make_stationary = True # Do we plot the final field considering the stationary approximation?
+make_transient = True # Do we want to calculate the transient behaviour? 
 make_video = True # Do we make a video? NEEDS FFMPEG installed
-clear_images = False # Do we clear the images at the end? CAREFULL, THIS DELETES ALL .PNG FILES IN THE DESTINATION FOLDER
+clear_cache = False # Do we clear the images at the end? CAREFULL, THIS DELETES ALL FILES IN THE CACHE FOLDER
 
 
 # We print the parameters of the simulation
 config = TalbotConfig()
 print(config)
-
-# We compute the intensity of the light and extend it to -d <= x <= d
-field = generate_amplitude_field(config) # We compute the amplitude of the solution
-field = field**2 # We compute the intensity of the light
-field = resize_field(field, config) # We use the symmetry of the solution to extend the domain to -d <= x <= d
-
 
 # Where define the location of the results folder
 my_path = os.path.dirname(os.path.abspath(__file__))
@@ -39,16 +38,50 @@ with open(os.path.join(folder_path, 'parameters.txt'), 'w') as file:
     file.write(str(config)) 
 
 
-# We plot the solution at each time t_i
-for t_i in tqdm(range(0, config.N_t)):
-    plot_field(t_i, field, config, folder_path, save_field = False)
+if make_transient:
+    # We compute the intensity of the light and extend it to -d <= x <= d
+    field = generate_amplitude_field(config) # We compute the amplitude of the solution
+    field = field**2 # We compute the intensity of the light
+    field = resize_field(field, config) # We use the symmetry of the solution to extend the domain to -d <= x <= d
 
-# We make the video
-if make_video:
-    output_name = 'Talbot_carpet_d_λ=' + str(1/config._lambda) + '_w_λ=' + str(config.w/config._lambda) + '.mp4'
-    create_video_from_images(folder_path, output_name)
+    # We create the caché folder if it doesn't exist
+    cache_path = os.path.join(folder_path, 'cache')
+    if not os.path.isdir(cache_path):
+        os.makedirs(cache_path)
 
-# We clear the images in folder_path
-if clear_images:
-    command = f'find "{folder_path}" -type f -iname \*.png -delete'
-    os.system(command) # We delete all .png files in folder_path
+    # We plot the solution at each time t_i at cache
+    for t_i in tqdm(range(0, config.N_t)):
+        title = 'Intensity of the field at $t = ' + str(round(t_i * config.delta_t/(config.z_T),4)) + '\\, Z_T/c$ for $\\frac{d}{\\lambda}='+str(1/config._lambda)+'$ and $\\frac{w}{\\lambda}=' + str(config.w/config._lambda)+'$'
+        file_name = 'd_λ=' + str(1/config._lambda) + '_w_λ=' + str(config.w/config._lambda)+'_' + str(t_i).rjust(len(str(config.N_t)),'0') + '_carpet.png'
+        plot_field(field[t_i], config, cache_path, title, file_name, save_field = False)
+
+    # We plot the final image also somewhere else to store it
+    final_field = field[config.N_t - 1]
+    del field
+    plot_field(final_field, config, cache_path, title, file_name, save_field = False)
+
+    # We make the video
+    if make_video:
+        output_name = 'Talbot_carpet_d_λ=' + str(1/config._lambda) + '_w_λ=' + str(config.w/config._lambda) + '.mp4'
+        output_path = os.path.join(folder_path, output_name)
+        video_from_images(cache_path, output_path)
+
+    # We clear the caché
+    if clear_cache:
+        shutil.rmtree(cache_path)
+
+
+# We make the stationary image
+if make_stationary:
+    stationary_field = generate_stationary_amplitude_field(config)
+    stationary_field = stationary_field**2 # We compute the intensity of the light
+    stationary_field = resize_stationary_field(stationary_field, config) # We use the symmetry of the solution to extend the domain to -d <= x <= d
+
+    title = 'Intensity of the stationary field at $t = ' + str(round(t_i * config.delta_t/(config.z_T),4)) + '\\, Z_T/c$ for $\\frac{d}{\\lambda}='+str(1/config._lambda)+'$ and $\\frac{w}{\\lambda}=' + str(config.w/config._lambda)+'$'
+    file_name = 'd_λ=' + str(1/config._lambda) + '_w_λ=' + str(config.w/config._lambda)+'_STATIONARY_carpet.png'
+    plot_field(stationary_field, config, folder_path, title, file_name, save_field = False) # We plot the solution
+
+    field_difference = stationary_field - final_field
+    title = 'Difference of the intensity of the stationary and transient fields at $t = ' + str(round(t_i * config.delta_t/(config.z_T),4)) + '\\, Z_T/c$ for $\\frac{d}{\\lambda}='+str(1/config._lambda)+'$ and $\\frac{w}{\\lambda}=' + str(config.w/config._lambda)+'$'
+    file_name = 'd_λ=' + str(1/config._lambda) + '_w_λ=' + str(config.w/config._lambda)+'_DIFFERENCE_carpet.png'
+    plot_field(field_difference, config, folder_path, title, file_name, save_field = False, difference = True) # We plot the difference between the stationary and transient case

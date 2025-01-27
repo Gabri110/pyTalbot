@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from numpy import savetxt
 
 
-def plot_field(t_i, field, config, folder_path, save_field = False):
+def plot_field(field, config, folder_path, title, file_name, save_field = False, difference = False):
     '''Plots the field at time t_i and saves the image in folder_path as a PNG.
 
     Parameters
@@ -25,10 +25,10 @@ def plot_field(t_i, field, config, folder_path, save_field = False):
     '''
     cm = 1/2.54
     plt.figure(figsize=(32*cm, 18*cm))
-    plt.title('Intensity of the Field at $t = ' + str(round(t_i * config.delta_t/(config.z_T),4)) + '\\, Z_T/c$ for $\\frac{d}{\\lambda}='+str(1/config._lambda)+'$ and $\\frac{w}{\\lambda}=' + str(config.w/config._lambda)+'$', fontsize = 20, y = 1.05)
-    
+    plt.title(title, fontsize = 20, y = 1.05)
+
     # Plot the Field
-    im = plt.imshow(field[t_i], cmap = 'gray', vmin = 0, vmax = (config.d/config.w)**2, interpolation = 'none')
+    im = plt.imshow(field, cmap = 'gray', vmin = 0, vmax = (config.d/config.w)**2, interpolation = 'none')
 
     # Label the X axis and set the ticks
     plt.ylabel('Grating', fontsize = 18)
@@ -45,24 +45,27 @@ def plot_field(t_i, field, config, folder_path, save_field = False):
     plt.xticks(ticks_z, labels_z, fontsize = 16)
     
     # Add the colorbar
-    cbar = plt.colorbar(im, ticks=[0., (config.d/config.w)**2/4, (config.d/config.w)**2/2, 3*(config.d/config.w)**2/4, (config.d/config.w)**2], fraction = 0.0458 * config.N_z/(4 * config.N_x), pad = 0.04, shrink = 0.9)
-    cbar.set_label(label = 'Intensity of the field', fontsize = 18)
-    cbar.ax.set_yticklabels(['$0$', '$\\dfrac{A^2}{4}$', '$\\dfrac{A^2}{2}$', '$\\dfrac{3A^2}{4}$', '$A^2$'], fontsize = 16)
+    if difference:
+        cbar = plt.colorbar(im, ticks=[-(config.d/config.w)**2, -(config.d/config.w)**2/2, 0., (config.d/config.w)**2/2, (config.d/config.w)**2], fraction = 0.0458 * config.N_z/(4 * config.N_x), pad = 0.04, shrink = 0.9)
+        cbar.set_label(label = 'Intensity of the field', fontsize = 18)
+        cbar.ax.set_yticklabels(['$-A^2$', '$-\\dfrac{A^2}{2}$', '$0$', '$\\dfrac{A^2}{2}$', '$A^2$'], fontsize = 16)
+    else:
+        cbar = plt.colorbar(im, ticks=[0., (config.d/config.w)**2/4, (config.d/config.w)**2/2, 3*(config.d/config.w)**2/4, (config.d/config.w)**2], fraction = 0.0458 * config.N_z/(4 * config.N_x), pad = 0.04, shrink = 0.9)
+        cbar.set_label(label = 'Intensity of the field', fontsize = 18)
+        cbar.ax.set_yticklabels(['$0$', '$\\dfrac{A^2}{4}$', '$\\dfrac{A^2}{2}$', '$\\dfrac{3A^2}{4}$', '$A^2$'], fontsize = 16)
     #cbar.set_label(label = 'Amplitude of the field', fontsize = 18)
-    #cbar.ax.set_yticklabels(['$-A$', '$-\\dfrac{A}{2}$', '$0$', '$\\dfrac{A}{2}$', '$A$'], fontsize = 16)
+    #cbar.ax.set_yticklabels(['$-A$', '$-\\dfrac{A}{2}$', '$0$', '$\\dfrac{A}{2}$', '$A$'], fontsize = 16) 
 
-    file_name = 'd_λ=' + str(1/config._lambda) + '_w_λ=' + str(config.w/config._lambda)+'_' + str(t_i).rjust(len(str(config.N_t)),'0') + '_carpet.png'
     plt.savefig(os.path.join(folder_path, file_name), bbox_inches = 'tight', dpi = 300)  
     plt.close()
 
     if save_field:
         # Save the field at time t_i to a txt file
-        txt_file_name = 'd_λ=' + str(1/config._lambda) + '_w_λ=' + str(config.w/config._lambda)+'_' + str(t_i) + '_carpet.txt'
-        savetxt(os.path.join(folder_path, txt_file_name), field[t_i], delimiter=',')
+        savetxt(os.path.join(folder_path, file_name), field, delimiter=',')
 
 
 
-def create_video_from_images(images_path, output_name, fps=24):
+def video_from_images(images_path, output_name, fps=24):
     '''Creates the video showcasing the formation of the Talbot effect.
 
     Parameters
@@ -82,5 +85,5 @@ def create_video_from_images(images_path, output_name, fps=24):
     if not os.path.exists(os.path.dirname(images_path)): # We make sure that the images_path exists.
         os.makedirs(os.path.dirname(images_path))
         
-    command = f'ffmpeg -framerate {fps} -pattern_type glob -i "{images_path}/*.png" -c:v libx264 -pix_fmt yuv420p "{images_path}/{output_name}"'
+    command = f'ffmpeg -framerate {fps} -pattern_type glob -i "{images_path}/*.png" -c:v libx264 -pix_fmt yuv420p "{output_name}"'
     os.system(command) # We create the video
