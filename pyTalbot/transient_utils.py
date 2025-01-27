@@ -127,11 +127,13 @@ def perform_integrals(config):
     partial_integral_sin = np.zeros((len(n_values),len(t_values),len(z_values)))
     partial_integral_cos = np.zeros((len(n_values),len(t_values),len(z_values)))
 
+    limit = 10_000_000
+
     for n in tqdm(range(1, len(n_values))): # We skip the n=0 case as it is trivially = 0
         for i in range(1, len(t_values)): # We skip the t=0 case as it is trivially = 0
             for j in range(1, len(z_values)): # We skip the z=0 case as it is trivially = 0
-                partial_integral_sin[n,i,j],_ = quad(integrand_sin, x_min[i,j], x_max[i,j], args=(k_n_values[n],z_values[j],config.omega, 1e-7), limit=10000, epsabs=1e-7, epsrel=1e-4) # We use quad to integrate
-                partial_integral_cos[n,i,j],_ = quad(integrand_cos, x_min[i,j], x_max[i,j], args=(k_n_values[n],z_values[j],config.omega, 1e-7), limit=10000, epsabs=1e-7, epsrel=1e-4) # We use quad to integrate
+                partial_integral_sin[n,i,j],_ = quad(integrand_sin, x_min[i,j], x_max[i,j], args=(k_n_values[n],z_values[j],config.omega, 1e-7), limit=limit, epsabs=1e-7, epsrel=5e-3) # We use quad to integrate
+                partial_integral_cos[n,i,j],_ = quad(integrand_cos, x_min[i,j], x_max[i,j], args=(k_n_values[n],z_values[j],config.omega, 1e-7), limit=limit, epsabs=1e-7, epsrel=5e-3) # We use quad to integrate
 
 
     # Initialize the result array
@@ -146,7 +148,7 @@ def perform_integrals(config):
     # Initialize the result array
     result = np.empty((len(n_values), len(t_values), len(z_values)))
     result = np.sin(config.omega * t_values[None,:,None]) * resummed_integral_cos \
-        - np.cos(config.omega * t_values[None,:,None]) * resummed_integral_sin # in(tau-t) = cos(t)sin(tau) - sin(t)cos(tau)
+        - np.cos(config.omega * t_values[None,:,None]) * resummed_integral_sin # sin(tau-t) = cos(t)sin(tau) - sin(t)cos(tau)
 
     return result
 
