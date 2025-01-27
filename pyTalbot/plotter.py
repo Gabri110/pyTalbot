@@ -92,5 +92,5 @@ def video_from_images(images_path, output_name, fps=24):
     if not os.path.exists(os.path.dirname(images_path)): # We make sure that the images_path exists.
         os.makedirs(os.path.dirname(images_path))
         
-    command = f'ffmpeg -framerate {fps} -pattern_type glob -i "{images_path}/*.png" -c:v libx264 -pix_fmt yuv420p "{output_name}"'
+    command = f'ffmpeg -framerate {fps} -pattern_type glob -i "{images_path}/*.png" -vf "scale=3288:1928" -c:v libx264 -pix_fmt yuv420p "{output_name}"'
     os.system(command) # We create the video

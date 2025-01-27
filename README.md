@@ -8,6 +8,20 @@ In order to be able to create the video, it is indispensable to have [FFmpeg](ht
 You may install it from the terminal in Ubundu and Debian through
 `sudo apt install ffmpeg` and on macOS through `brew install ffmpeg`.
 
+It is also necessary to compile the C++ libraries used for integration. In order to do this, run from the main folder where the file CMakeList.txt is
+```
+mkdir build
+cd build
+cmake ..
+make
+make clean
+```
+
+In order to get all the python required libraries, you may run from the main folder
+```
+pip install -r requirements.txt
+```
+
 ## The problem
 
 This project plots the solution to the 2D wave equation
