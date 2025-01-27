@@ -3,21 +3,27 @@ import matplotlib.pyplot as plt
 from numpy import savetxt
 
 
-def plot_field(field, config, folder_path, title, file_name, save_field = False, difference = False):
+def plot_field(field, config, folder_path, title, file_name, save_field = False, difference = False, cmap = 'gray'):
     '''Plots the field at time t_i and saves the image in folder_path as a PNG.
 
     Parameters
     ----------
-    t_i : float
-        Time of the image.
     field : np.ndarray of floats
         Field to be plotted. Must of size (N_t, 4 N_x, N_z).
     config : TalbotConfig
         Class storing the parameters of the simulation.
     folder_path : string
         Path where the image must be stored. The folder MUST exist.
+    title : string
+        Title of the plot
+    file_name : string
+        Name of the file.
     save_field : bool, optional
         Whether the image should be saved as a txt file alongside the PNG image.
+    difference : bool, optional
+        Whether the values of the image run from -A^2 to A^2 (True) or from 0 to A^2 (False).
+    cmap : str, optional
+        Colormap used for the images. See documentation of matplotlib. Some recommended options are gray and turbo.
 
     Returns
     -------
@@ -28,7 +34,8 @@ def plot_field(field, config, folder_path, title, file_name, save_field = False,
     plt.title(title, fontsize = 20, y = 1.05)
 
     # Plot the Field
-    im = plt.imshow(field, cmap = 'gray', vmin = 0, vmax = (config.d/config.w)**2, interpolation = 'none')
+    # Some nice options are gray and turbo 
+    im = plt.imshow(field, cmap = cmap, vmin = 0, vmax = (config.d/config.w)**2, interpolation = 'none')
 
     # Label the X axis and set the ticks
     plt.ylabel('Grating', fontsize = 18)

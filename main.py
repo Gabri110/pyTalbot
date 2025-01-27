@@ -15,6 +15,7 @@ make_stationary = True # Do we plot the final field considering the stationary a
 make_transient = True # Do we want to calculate the transient behaviour? 
 make_video = True # Do we make a video? NEEDS FFMPEG installed
 clear_cache = False # Do we clear the images at the end? CAREFULL, THIS DELETES ALL FILES IN THE CACHE FOLDER
+colour = 'gray' # Colour of the plots. Must be str. Suggested picks are 'gray' and 'turbo'. Check the documentation of matplotlib for more.
 
 
 # We print the parameters of the simulation
@@ -53,12 +54,13 @@ if make_transient:
     for t_i in tqdm(range(0, config.N_t)):
         title = 'Intensity of the field at $t = ' + str(round(t_i * config.delta_t/(config.z_T),4)) + '\\, Z_T/c$ for $\\frac{d}{\\lambda}='+str(1/config._lambda)+'$ and $\\frac{w}{\\lambda}=' + str(config.w/config._lambda)+'$'
         file_name = 'd_λ=' + str(1/config._lambda) + '_w_λ=' + str(config.w/config._lambda)+'_' + str(t_i).rjust(len(str(config.N_t)),'0') + '_carpet.png'
-        plot_field(field[t_i], config, cache_path, title, file_name, save_field = False)
+        plot_field(field[t_i], config, cache_path, title, file_name, save_field = False, cmap = colour)
 
     # We plot the final image also somewhere else to store it
     final_field = field[config.N_t - 1]
     del field
-    plot_field(final_field, config, cache_path, title, file_name, save_field = False)
+    file_name = 'd_λ=' + str(1/config._lambda) + '_w_λ=' + str(config.w/config._lambda)+'_TRANSIENT_carpet.png'
+    plot_field(final_field, config, folder_path, title, file_name, save_field = False, cmap = colour)
 
     # We make the video
     if make_video:
@@ -79,9 +81,9 @@ if make_stationary:
 
     title = 'Intensity of the stationary field at $t = ' + str(round(t_i * config.delta_t/(config.z_T),4)) + '\\, Z_T/c$ for $\\frac{d}{\\lambda}='+str(1/config._lambda)+'$ and $\\frac{w}{\\lambda}=' + str(config.w/config._lambda)+'$'
     file_name = 'd_λ=' + str(1/config._lambda) + '_w_λ=' + str(config.w/config._lambda)+'_STATIONARY_carpet.png'
-    plot_field(stationary_field, config, folder_path, title, file_name, save_field = False) # We plot the solution
+    plot_field(stationary_field, config, folder_path, title, file_name, save_field = False, cmap = colour) # We plot the solution
 
     field_difference = stationary_field - final_field
     title = 'Difference of the intensity of the stationary and transient fields at $t = ' + str(round(t_i * config.delta_t/(config.z_T),4)) + '\\, Z_T/c$ for $\\frac{d}{\\lambda}='+str(1/config._lambda)+'$ and $\\frac{w}{\\lambda}=' + str(config.w/config._lambda)+'$'
     file_name = 'd_λ=' + str(1/config._lambda) + '_w_λ=' + str(config.w/config._lambda)+'_DIFFERENCE_carpet.png'
-    plot_field(field_difference, config, folder_path, title, file_name, save_field = False, difference = True) # We plot the difference between the stationary and transient case
+    plot_field(field_difference, config, folder_path, title, file_name, save_field = False, difference = True, cmap = colour) # We plot the difference between the stationary and transient case
