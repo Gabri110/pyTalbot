@@ -85,7 +85,8 @@ def perform_integrals(config):
 
     # We load the compiled libraries with ctypes
     lib_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib')
-    fast_integrals = ctypes.CDLL(os.path.join(lib_path, 'libintegrals.so'))
+    lib_extension = '.dylib' if os.name == 'posix' else '.so' # Depends on OS. dylib for Mac, so for UNIX
+    fast_integrals = ctypes.CDLL(os.path.join(lib_path, f'libintegrals{lib_extension}'))
     fast_integrals.compute_cos.argtypes = [
         ptr_t, ptr_t, ptr_t, ptr_t, ptr_t, ptr_t,
         int_t, int_t, int_t, int_t,

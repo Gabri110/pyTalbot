@@ -21,7 +21,7 @@ double integrand_sin(double tau, void* generic_params)
     const double omega = params[3];
     const double epsilon = params[4];
 
-    const double u = sqrt(std::max(0.0, tau*tau - z*z)); // Precompute this part. The np.maximum avoids sqrt(-x) operations.
+    const double u = sqrt(std::fmax(0.0, tau*tau - z*z)); // Precompute this part. The np.maximum avoids sqrt(-x) operations.
 
     if(u < epsilon)
         return sin(omega * tau) * k * 0.5; // We use the Taylor expansion of J1(x) to avoid divisions by 0. 
@@ -38,7 +38,7 @@ double integrand_cos(double tau, void* generic_params)
     const double omega = params[3];
     const double epsilon = params[4];
 
-    const double u = sqrt(std::max(0.0, tau*tau - z*z)); // Precompute this part. The np.maximum avoids sqrt(-x) operations.
+    const double u = sqrt(std::fmax(0.0, tau*tau - z*z)); // Precompute this part. The np.maximum avoids sqrt(-x) operations.
     
     if(u < epsilon)
         return cos(omega * tau) * k * 0.5; // We use the Taylor expansion of J1(x) to avoid divisions by 0. 
