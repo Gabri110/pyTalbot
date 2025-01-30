@@ -41,7 +41,7 @@ class TalbotConfig:
         self.A = 1. # Amplitude of source
         self.c = 1. # Speed of light
         self.d = 1. # Distance between gratings we fix it = 1
-        self._lambda = self.d / 10. # Wavelength
+        self._lambda = self.d / 10. # Wavelength. The program breaks if > self.d / 20 (approx)
         self.w = 2 * self._lambda # Width of the gratings
 
         # Related relevant magnitudes
@@ -49,8 +49,8 @@ class TalbotConfig:
         self.z_T = self._lambda/(1. - np.sqrt(1.-(self._lambda/self.d) ** 2)) # Talbot distance = 2 d^2/λ
 
         # Grid parameters
-        self.N_x = 27*10 # Number of samples in x direction
-        self.N_z = 192*10 # Number of samples in z direction
+        self.N_x = 27*5 # Number of samples in x direction
+        self.N_z = 192*5 # Number of samples in z direction
         self.N_t = 250 # Number of samples in time
 
         # Simulation parameters
@@ -62,6 +62,8 @@ class TalbotConfig:
         self.delta_t = self.z_T/self.c/(self.N_t-1) * (self.final_t_zT - self.initial_t_zT) # Time between photos
         self.delta_x = self.d/2/self.N_x # X-Distance between points
         self.delta_z = self.z_T/self.N_z # Z-Distance between points
+
+        self.use_levin = True
 
 
     def __str__(self):
@@ -82,6 +84,7 @@ class TalbotConfig:
             "Z-Distance between points (delta_z)": self.delta_z,
             "Initial time / z_T": self.initial_t_zT,
             "Final time / z_T": self.final_t_zT,
+            "Do we use Levin's method to perform the integrals?": self.use_levin,
         }
         
         # Create a string stream to capture the print output

@@ -7,6 +7,7 @@ from pyTalbot.stationary_utils import generate_stationary_amplitude_field, resiz
 from pyTalbot.plotter import video_from_images, plot_field
 from datetime import datetime
 
+
 ##################################
 # Configuration of the simulation.
 ##################################

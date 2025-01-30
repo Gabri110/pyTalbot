@@ -60,68 +60,121 @@ def perform_integrals(config):
     t_values = np.linspace(config.z_T/config.c * config.initial_t_zT, config.z_T/config.c * config.final_t_zT, config.N_t)
     z_values = np.linspace(0, config.N_z*config.delta_z, config.N_z)
 
-    # Preallocate the result arrays (shape: len(n_values) x len(z_values))
+    # Preallocate the arrays that store the boundaries of the subintervals (shape: len(n_values) x len(z_values))
     x_min = np.zeros((len(t_values), len(z_values)))
     x_max = np.empty((len(t_values), len(z_values)))
-
-    # Compute the values
-    t1_values = np.roll(t_values, 1)
-    t1_values[0] = 0.
-    x_min = np.maximum(z_values[None, :], t1_values[:, None])  # Max between z_values[j] and t_values[i-1]
-    x_max = np.maximum(z_values[None, :], t_values[:, None])  # Max between z_values[j] and t_values[i]
         
     # Prealocate the result arrays
     partial_integral_sin = np.zeros((len(n_values),len(t_values),len(z_values)))
     partial_integral_cos = np.zeros((len(n_values),len(t_values),len(z_values)))
 
+    if config.use_levin:
 
-    # Load the compiled libraries with ctypes
-    int_t = ctypes.c_int
-    double_t = ctypes.c_double
-    ptr_t = ctypes.POINTER(double_t)
+        # Compute the boundaries of the intervales
+        t1_values = np.roll(t_values, 1)
+        t1_values[0] = 0.
+        z1_values = np.roll(z_values, 1)
+        z1_values[0] = 0.
 
-    # Utility function
-    ptr = lambda array: array.ctypes.data_as(ptr_t)
+        def u(t,z):
+            return np.sqrt( np.maximum(t**2 - z**2, 0.))
 
-    # We load the compiled libraries with ctypes
-    lib_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib')
-    lib_extension = '.dylib' if os.name == 'posix' else '.so' # Depends on OS. dylib for Mac, so for UNIX
-    fast_integrals = ctypes.CDLL(os.path.join(lib_path, f'libintegrals{lib_extension}'))
-    fast_integrals.compute_cos.argtypes = [
-        ptr_t, ptr_t, ptr_t, ptr_t, ptr_t, ptr_t,
-        int_t, int_t, int_t, int_t,
-        double_t, double_t, double_t, double_t
-    ]
-    fast_integrals.compute_cos.restype = None
+        x_min = u(z1_values[None, :], t1_values[:, None]) 
+        x_max = u(z_values[None, :], t_values[:, None])
 
-    fast_integrals.compute_sin.argtypes = [
-        ptr_t, ptr_t, ptr_t, ptr_t, ptr_t, ptr_t,
-        int_t, int_t, int_t, int_t,
-        double_t, double_t, double_t, double_t
-    ]
-    fast_integrals.compute_sin.restype = None
+        # Load the compiled libraries with ctypes
+        int_t = ctypes.c_int
+        double_t = ctypes.c_double
+        bool_t = ctypes.c_bool
+        ptr_t = ctypes.POINTER(double_t)
 
-    # We perform the integrals
-    limit = 100_000
-    eps_abs = 1e-6
-    eps_rel = 1e-3
-    epsilon = 1e-6
+        # Utility function
+        ptr = lambda array: array.ctypes.data_as(ptr_t)
 
-    fast_integrals.compute_cos(
-        ptr(partial_integral_cos), ptr(x_min), ptr(x_max), 
-        ptr(k_n_values), ptr(t_values), ptr(z_values), 
-        len(n_values), len(t_values), len(z_values), 
-        limit, eps_abs, eps_rel, 
-        config.omega, epsilon
-    )
+        # We load the compiled libraries with ctypes
+        lib_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib')
+        lib_extension = '.dylib' if os.name == 'posix' else '.so' # Depends on OS. dylib for Mac, so for UNIX
+        levin_integrals = ctypes.CDLL(os.path.join(lib_path, f'libintegrals_levin{lib_extension}'))
 
-    fast_integrals.compute_sin(
-        ptr(partial_integral_sin), ptr(x_min), ptr(x_max), 
-        ptr(k_n_values), ptr(t_values), ptr(z_values), 
-        len(n_values), len(t_values), len(z_values), 
-        limit, eps_abs, eps_rel, 
-        config.omega, epsilon
-    )
+        levin_integrals.perform_integrals.argtypes = [
+            ptr_t, ptr_t, ptr_t, 
+            ptr_t, ptr_t, ptr_t,
+            int_t, int_t, int_t, 
+            double_t, bool_t, int_t
+        ]
+        levin_integrals.perform_integrals.restype = None
+
+        # We perform the integrals
+        points = 100
+
+        levin_integrals.perform_integrals(
+            ptr(partial_integral_sin), ptr(x_min), ptr(x_max), 
+            ptr(k_n_values), ptr(t_values), ptr(z_values), 
+            len(n_values), len(t_values), len(z_values), 
+            config.omega, True, points
+        )
+
+        levin_integrals.perform_integrals(
+            ptr(partial_integral_cos), ptr(x_min), ptr(x_max), 
+            ptr(k_n_values), ptr(t_values), ptr(z_values), 
+            len(n_values), len(t_values), len(z_values), 
+            config.omega, False, points
+        )
+
+    else:
+
+        # Compute the boundaries of the intervales
+        t1_values = np.roll(t_values, 1)
+        t1_values[0] = 0.
+        x_min = np.maximum(z_values[None, :], t1_values[:, None])  # Max between z_values[j] and t_values[i-1]
+        x_max = np.maximum(z_values[None, :], t_values[:, None])  # Max between z_values[j] and t_values[i]
+
+        # Load the compiled libraries with ctypes
+        int_t = ctypes.c_int
+        double_t = ctypes.c_double
+        ptr_t = ctypes.POINTER(double_t)
+
+        # Utility function
+        ptr = lambda array: array.ctypes.data_as(ptr_t)
+
+        # We load the compiled libraries with ctypes
+        lib_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib')
+        lib_extension = '.dylib' if os.name == 'posix' else '.so' # Depends on OS. dylib for Mac, so for UNIX
+        fast_integrals = ctypes.CDLL(os.path.join(lib_path, f'libintegrals_quad{lib_extension}'))
+        fast_integrals.compute_cos.argtypes = [
+            ptr_t, ptr_t, ptr_t, ptr_t, ptr_t, ptr_t,
+            int_t, int_t, int_t, int_t,
+            double_t, double_t, double_t, double_t
+        ]
+        fast_integrals.compute_cos.restype = None
+
+        fast_integrals.compute_sin.argtypes = [
+            ptr_t, ptr_t, ptr_t, ptr_t, ptr_t, ptr_t,
+            int_t, int_t, int_t, int_t,
+            double_t, double_t, double_t, double_t
+        ]
+        fast_integrals.compute_sin.restype = None
+
+        # We perform the integrals
+        limit = 100_000
+        eps_abs = 1e-6
+        eps_rel = 1e-3
+
+        fast_integrals.compute_cos(
+            ptr(partial_integral_cos), ptr(x_min), ptr(x_max), 
+            ptr(k_n_values), ptr(t_values), ptr(z_values), 
+            len(n_values), len(t_values), len(z_values), 
+            limit, eps_abs, eps_rel, 
+            config.omega
+        )
+
+        fast_integrals.compute_sin(
+            ptr(partial_integral_sin), ptr(x_min), ptr(x_max), 
+            ptr(k_n_values), ptr(t_values), ptr(z_values), 
+            len(n_values), len(t_values), len(z_values), 
+            limit, eps_abs, eps_rel, 
+            config.omega
+        )
 
     # Initialize the result array
     resummed_integral_sin = np.empty((len(n_values), len(t_values), len(z_values)))

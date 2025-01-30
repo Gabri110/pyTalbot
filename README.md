@@ -13,8 +13,7 @@ It is also necessary to compile the C++ libraries used for integration. For this
 
 To compile the libraries, run the following from the main folder, where the file CMakeList.txt is,
 ```
-mkdir build
-cd build
+mkdir build && cd build
 cmake ..
 make
 make clean
