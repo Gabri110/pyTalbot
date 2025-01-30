@@ -51,10 +51,10 @@ class TalbotConfig:
         # Grid parameters
         self.N_x = 27*5 # Number of samples in x direction
         self.N_z = 192*5 # Number of samples in z direction
-        self.N_t = 250 # Number of samples in time
+        self.N_t = 100 # Number of samples in time
 
         # Simulation parameters
-        self.N_max = int(self.d / self._lambda * 5) # Number of terms in the series
+        self.N_max = int(self.d / self._lambda * 4) # Number of terms in the series
         self.initial_t_zT = 0. # Initial time / Z_t
         self.final_t_zT = 2. # Final time / Z_t
 

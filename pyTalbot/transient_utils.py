@@ -1,4 +1,5 @@
 import os
+import platform
 import numpy as np
 import ctypes
 from tqdm import tqdm
@@ -85,7 +86,6 @@ def perform_integrals(config):
         # Load the compiled libraries with ctypes
         int_t = ctypes.c_int
         double_t = ctypes.c_double
-        bool_t = ctypes.c_bool
         ptr_t = ctypes.POINTER(double_t)
 
         # Utility function
@@ -93,32 +93,25 @@ def perform_integrals(config):
 
         # We load the compiled libraries with ctypes
         lib_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib')
-        lib_extension = '.dylib' if os.name == 'posix' else '.so' # Depends on OS. dylib for Mac, so for UNIX
+        lib_extension = '.dylib' if platform.system() == 'Darwin' else '.so' # Depends on OS. dylib for Mac, so for Linux
         levin_integrals = ctypes.CDLL(os.path.join(lib_path, f'libintegrals_levin{lib_extension}'))
 
         levin_integrals.perform_integrals.argtypes = [
-            ptr_t, ptr_t, ptr_t, 
+            ptr_t, ptr_t, ptr_t, ptr_t, 
             ptr_t, ptr_t, ptr_t,
             int_t, int_t, int_t, 
-            double_t, bool_t, int_t
+            double_t, int_t
         ]
         levin_integrals.perform_integrals.restype = None
 
         # We perform the integrals
-        points = 100
+        points = 30
 
         levin_integrals.perform_integrals(
-            ptr(partial_integral_sin), ptr(x_min), ptr(x_max), 
+            ptr(partial_integral_sin), ptr(partial_integral_cos), ptr(x_min), ptr(x_max), 
             ptr(k_n_values), ptr(t_values), ptr(z_values), 
             len(n_values), len(t_values), len(z_values), 
-            config.omega, True, points
-        )
-
-        levin_integrals.perform_integrals(
-            ptr(partial_integral_cos), ptr(x_min), ptr(x_max), 
-            ptr(k_n_values), ptr(t_values), ptr(z_values), 
-            len(n_values), len(t_values), len(z_values), 
-            config.omega, False, points
+            config.omega, points
         )
 
     else:
@@ -139,7 +132,7 @@ def perform_integrals(config):
 
         # We load the compiled libraries with ctypes
         lib_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib')
-        lib_extension = '.dylib' if os.name == 'posix' else '.so' # Depends on OS. dylib for Mac, so for UNIX
+        lib_extension = '.dylib' if platform.system() == 'Darwin' else '.so' # Depends on OS. dylib for Mac, so for Linux
         fast_integrals = ctypes.CDLL(os.path.join(lib_path, f'libintegrals_quad{lib_extension}'))
         fast_integrals.compute_cos.argtypes = [
             ptr_t, ptr_t, ptr_t, ptr_t, ptr_t, ptr_t,

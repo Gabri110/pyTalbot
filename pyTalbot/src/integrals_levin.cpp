@@ -79,10 +79,10 @@ std::function<double(double, double, double)>
 };
 
 
-extern "C" void perform_integrals(double* partial_integral, double* x_min, double* x_max, 
+extern "C" void perform_integrals(double* partial_integral_sin, double* partial_integral_cos, double* x_min, double* x_max, 
                         double* k_n_values, double* t_values, double* z_values, 
                         int n_size, int t_size, int z_size, 
-                        double omega, bool sin, int points=50)
+                        double omega, int points=50)
 {
     #pragma omp parallel for collapse(2) schedule(dynamic)
     for (int z = 1; z < z_size; ++z) // We skip the n,t,z=0 cases as they are trivially null.
@@ -101,21 +101,16 @@ extern "C" void perform_integrals(double* partial_integral, double* x_min, doubl
                 // Bessel integrator with custom grid and nu=1
                 bestlime::Bessel_integrator<Sqrt_r_grid> bessel_int_sqrt_r(n_points, integration_limits, {z_values[z]});
 
-                // discretize integrand on the grid
+                // discretize integrands on the grid
                 // note: template argument of of discretize() is deduced
-                 bestlime::grid_vector f_values;
-
-                if (sin) {
-                    f_values = {bessel_int_sqrt_r.discretize(integrand_sin, z_values[z], omega)};
-                } else {
-                    f_values = {bessel_int_sqrt_r.discretize(integrand_cos, z_values[z], omega)};
-                }
-                // THE PROBLEM IS AFTER THIS
+                const bestlime::grid_vector f_sin_values {bessel_int_sqrt_r.discretize(integrand_sin, z_values[z], omega)};
+                const bestlime::grid_vector f_cos_values {bessel_int_sqrt_r.discretize(integrand_cos, z_values[z], omega)};
 
                 // We perform the integrals
                 for (int n = 1; n < n_size; ++n) 
                 {
-                    partial_integral[(n*t_size+t)*z_size+z] = bessel_int_sqrt_r.int_J_nu(f_values, k_n_values[n]);
+                    partial_integral_sin[(n*t_size+t)*z_size+z] = bessel_int_sqrt_r.int_J_nu(f_sin_values, k_n_values[n]);
+                    partial_integral_cos[(n*t_size+t)*z_size+z] = bessel_int_sqrt_r.int_J_nu(f_cos_values, k_n_values[n]);
                 }
             }
         }
