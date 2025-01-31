@@ -87,19 +87,13 @@ def perform_integrals(config):
     lib_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib')
     lib_extension = '.dylib' if os.name == 'posix' else '.so' # Depends on OS. dylib for Mac, so for UNIX
     fast_integrals = ctypes.CDLL(os.path.join(lib_path, f'libintegrals{lib_extension}'))
-    fast_integrals.compute_cos.argtypes = [
-        ptr_t, ptr_t, ptr_t, ptr_t, ptr_t, ptr_t,
-        int_t, int_t, int_t, int_t,
-        double_t, double_t, double_t, double_t
-    ]
-    fast_integrals.compute_cos.restype = None
 
-    fast_integrals.compute_sin.argtypes = [
-        ptr_t, ptr_t, ptr_t, ptr_t, ptr_t, ptr_t,
+    fast_integrals.compute_integrals.argtypes = [
+        ptr_t, ptr_t, ptr_t, ptr_t, ptr_t, ptr_t, ptr_t,
         int_t, int_t, int_t, int_t,
         double_t, double_t, double_t, double_t
     ]
-    fast_integrals.compute_sin.restype = None
+    fast_integrals.compute_integrals.restype = None
 
     # We perform the integrals
     limit = 100_000
@@ -107,16 +101,8 @@ def perform_integrals(config):
     eps_rel = 1e-3
     epsilon = 1e-6
 
-    fast_integrals.compute_cos(
-        ptr(partial_integral_cos), ptr(x_min), ptr(x_max), 
-        ptr(k_n_values), ptr(t_values), ptr(z_values), 
-        len(n_values), len(t_values), len(z_values), 
-        limit, eps_abs, eps_rel, 
-        config.omega, epsilon
-    )
-
-    fast_integrals.compute_sin(
-        ptr(partial_integral_sin), ptr(x_min), ptr(x_max), 
+    fast_integrals.compute_integrals(
+        ptr(partial_integral_cos), ptr(partial_integral_sin), ptr(x_min), ptr(x_max), 
         ptr(k_n_values), ptr(t_values), ptr(z_values), 
         len(n_values), len(t_values), len(z_values), 
         limit, eps_abs, eps_rel, 
