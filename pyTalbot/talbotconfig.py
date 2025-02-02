@@ -49,8 +49,8 @@ class TalbotConfig:
         self.z_T = self._lambda/(1. - np.sqrt(1.-(self._lambda/self.d) ** 2)) # Talbot distance = 2 d^2/λ
 
         # Grid parameters
-        self.N_x = 27*2 # Number of samples in x direction
-        self.N_z = 192*2 # Number of samples in z direction
+        self.N_x = 27*10 # Number of samples in x direction
+        self.N_z = 192*10 # Number of samples in z direction
         self.N_t = 250 # Number of samples in time
 
         # Simulation parameters

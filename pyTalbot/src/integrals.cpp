@@ -13,6 +13,7 @@ how to efficiently evaluate integrals in Python through the GSL library.
 #include <gsl/gsl_integration.h>
 #include <gsl/gsl_sf_bessel.h>
 
+// We multiply the integrand by 100 and then divide the end result by 100 to mitigate roundoff errors
 double integrand_sin(double tau, void* generic_params)
 {
     const double* params = (double*)generic_params;
@@ -25,11 +26,12 @@ double integrand_sin(double tau, void* generic_params)
     const double u = sqrt(std::fmax(0.0, tau*tau - z*z)); // Precompute this part. The np.maximum avoids sqrt(-x) operations.
 
     if(u < epsilon)
-        return sin(omega * tau) * k * 0.5; // We use the Taylor expansion of J1(x) to avoid divisions by 0. 
+        return sin(omega * tau) * k * 0.5 * 100.; // We use the Taylor expansion of J1(x) to avoid divisions by 0. 
     else
-        return sin(omega * tau) * gsl_sf_bessel_J1(k * u) / u;
+        return sin(omega * tau) * gsl_sf_bessel_J1(k * u) / u * 100.;
 }
 
+// We multiply the integrand by 100 and then divide the end result by 100 to mitigate roundoff errors
 double integrand_cos(double tau, void* generic_params)
 {
     const double* params = (double*)generic_params;
@@ -42,9 +44,9 @@ double integrand_cos(double tau, void* generic_params)
     const double u = sqrt(std::fmax(0.0, tau*tau - z*z)); // Precompute this part. The np.maximum avoids sqrt(-x) operations.
     
     if(u < epsilon)
-        return cos(omega * tau) * k * 0.5; // We use the Taylor expansion of J1(x) to avoid divisions by 0. 
+        return cos(omega * tau) * k * 0.5 * 100.; // We use the Taylor expansion of J1(x) to avoid divisions by 0. 
     else
-        return cos(omega * tau) * gsl_sf_bessel_J1(k * u) / u;
+        return cos(omega * tau) * gsl_sf_bessel_J1(k * u) / u * 100.;
 }
 
 
@@ -59,10 +61,10 @@ extern "C" void compute_integrals(double* partial_integral_cos, double* partial_
     {
         std::cout << "The value of n is: " << n << std::endl;
 
-        for (int t = 1; t < t_size; ++t)
+        for (int t = t_size - 1; t > 0; --t)
         {
-            gsl_integration_workspace* workspace = gsl_integration_workspace_alloc(1024*1024*16);
-            gsl_integration_cquad_workspace* workspace_cquad = gsl_integration_cquad_workspace_alloc(1024*1024*16);
+            gsl_integration_workspace* workspace = gsl_integration_workspace_alloc(1024*1024*8);
+            gsl_integration_cquad_workspace* workspace_cquad = gsl_integration_cquad_workspace_alloc(1024*1024*2);
 
             double err [[maybe_unused]];
             
@@ -86,27 +88,19 @@ extern "C" void compute_integrals(double* partial_integral_cos, double* partial_
             {
                 params[2] = z_values[z];
 
-                try { // We try to use QAG
-                    gsl_integration_qag(&func_cos, x_min[t*z_size+z], x_max[t*z_size+z], 
-                                     epsabs, epsrel, limit, 4, workspace, 
-                                     &partial_integral_cos[(n*t_size+t)*z_size+z], &err);
+                gsl_integration_qag(&func_cos, x_min[t*z_size+z], x_max[t*z_size+z], 
+                                 epsabs, epsrel, limit, 4, workspace, 
+                                 &partial_integral_cos[(n*t_size+t)*z_size+z], &err);
                     
-                    gsl_integration_qag(&func_sin, x_min[t*z_size+z], x_max[t*z_size+z], 
-                                     epsabs, epsrel, limit, 4, workspace, 
-                                     &partial_integral_sin[(n*t_size+t)*z_size+z], &err);
+                gsl_integration_qag(&func_sin, x_min[t*z_size+z], x_max[t*z_size+z], 
+                                 epsabs, epsrel, limit, 4, workspace, 
+                                 &partial_integral_sin[(n*t_size+t)*z_size+z], &err);
 
-                } catch (const std::exception& e) { // We use CQUAD, a more robust integrator if there's any problem
 
-                    gsl_integration_cquad(&func_cos, x_min[t*z_size+z], x_max[t*z_size+z], 
-                                     epsabs, epsrel, workspace_cquad, 
-                                     &partial_integral_cos[(n*t_size+t)*z_size+z], NULL, NULL);
+                // We multiply the integrand by 100 and then divide the end result by 100 to mitigate roundoff errors
+                partial_integral_cos[(n*t_size+t)*z_size+z] /= 100.;
+                partial_integral_sin[(n*t_size+t)*z_size+z] /= 100.;
 
-                    gsl_integration_cquad(&func_sin, x_min[t*z_size+z], x_max[t*z_size+z], 
-                                     epsabs, epsrel, workspace_cquad, 
-                                     &partial_integral_sin[(n*t_size+t)*z_size+z], NULL, NULL);
-
-                    
-                }                     
             }
 
             // We free the memory

@@ -1,4 +1,4 @@
-import os
+import os, sys
 import numpy as np
 import ctypes
 from tqdm import tqdm
@@ -85,7 +85,7 @@ def perform_integrals(config):
 
     # We load the compiled libraries with ctypes
     lib_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib')
-    lib_extension = '.dylib' if os.name == 'posix' else '.so' # Depends on OS. dylib for Mac, so for UNIX
+    lib_extension = '.dll' if sys.platform == 'win32' else '.so' if sys.platform.startswith('linux') else '.dylib'
     fast_integrals = ctypes.CDLL(os.path.join(lib_path, f'libintegrals{lib_extension}'))
 
     fast_integrals.compute_integrals.argtypes = [
@@ -96,9 +96,9 @@ def perform_integrals(config):
     fast_integrals.compute_integrals.restype = None
 
     # We perform the integrals
-    limit = 100_000
-    eps_abs = 1e-6
-    eps_rel = 1e-3
+    limit = 50_000
+    eps_abs = 1e-7
+    eps_rel = 1e-4
     epsilon = 1e-6
 
     fast_integrals.compute_integrals(
