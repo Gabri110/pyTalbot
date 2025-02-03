@@ -1,5 +1,5 @@
 /*
-C++ code to compute the integrals.
+C code to compute the integrals.
 
 Credits to Jérôme Richard, who explained in this stackoverflow's answer stackoverflow.com/a/79360271/24208929 
 how to efficiently evaluate integrals in Python through the GSL library.
@@ -23,7 +23,7 @@ double integrand_sin(double tau, void* generic_params)
     const double omega = params[3];
     const double epsilon = params[4];
 
-    const double u = sqrt(std::fmax(0.0, tau*tau - z*z)); // Precompute this part. The np.maximum avoids sqrt(-x) operations.
+    const double u = sqrt(fmax(0.0, tau*tau - z*z)); // Precompute this part. The np.maximum avoids sqrt(-x) operations.
 
     if(u < epsilon)
         return sin(omega * tau) * k * 0.5 * 100.; // We use the Taylor expansion of J1(x) to avoid divisions by 0. 
@@ -41,7 +41,7 @@ double integrand_cos(double tau, void* generic_params)
     const double omega = params[3];
     const double epsilon = params[4];
 
-    const double u = sqrt(std::fmax(0.0, tau*tau - z*z)); // Precompute this part. The np.maximum avoids sqrt(-x) operations.
+    const double u = sqrt(fmax(0.0, tau*tau - z*z)); // Precompute this part. The np.maximum avoids sqrt(-x) operations.
     
     if(u < epsilon)
         return cos(omega * tau) * k * 0.5 * 100.; // We use the Taylor expansion of J1(x) to avoid divisions by 0. 
@@ -50,7 +50,7 @@ double integrand_cos(double tau, void* generic_params)
 }
 
 
-extern "C" void compute_integrals(double* partial_integral_cos, double* partial_integral_sin, double* x_min, double* x_max, 
+void compute_integrals(double* partial_integral_cos, double* partial_integral_sin, double* x_min, double* x_max, 
                         double* k_n_values, double* t_values, double* z_values, 
                         int n_size, int t_size, int z_size, 
                         int limit, double epsabs, double epsrel, 
@@ -59,7 +59,7 @@ extern "C" void compute_integrals(double* partial_integral_cos, double* partial_
     #pragma omp parallel for collapse(2) schedule(dynamic)
     for (int n = n_size - 1; n > 0; --n) // We skip the n,t,z=0 cases as they are trivially null.
     {
-        std::cout << "The value of n is: " << n << std::endl;
+        printf("The value of n is: %d. \n",n);
 
         for (int t = t_size - 1; t > 0; --t)
         {
