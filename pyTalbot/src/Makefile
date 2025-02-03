@@ -5,7 +5,7 @@ TARGET = integrals.so
 SRC = integrals.c
 
 $(TARGET): $(SRC)
-    $(CC) $(CFLAGS) -o $(TARGET) $(SRC) $(LIBS)
+	$(CC) $(CFLAGS) -o $(TARGET) $(SRC) $(LIBS)
 
 clean:
-    rm -f $(TARGET)
+	rm -f $(TARGET)

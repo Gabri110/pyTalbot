@@ -5,11 +5,10 @@ Credits to Jérôme Richard, who explained in this stackoverflow's answer stacko
 how to efficiently evaluate integrals in Python through the GSL library.
 */
 
-#include <cstdlib>
-#include <cstdint>
-#include <cstdio>
-#include <cmath>
-#include <iostream>
+#include <stdlib.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <math.h>
 #include <gsl/gsl_integration.h>
 #include <gsl/gsl_sf_bessel.h>
 
@@ -59,10 +58,13 @@ void compute_integrals(double* partial_integral_cos, double* partial_integral_si
     #pragma omp parallel for collapse(2) schedule(dynamic)
     for (int n = n_size - 1; n > 0; --n) // We skip the n,t,z=0 cases as they are trivially null.
     {
-        printf("The value of n is: %d. \n",n);
 
         for (int t = t_size - 1; t > 0; --t)
         {
+            if (t== t_size-1){
+                printf("The value of n is: %d. \n",n);
+            }
+            
             gsl_integration_workspace* workspace = gsl_integration_workspace_alloc(1024*1024*8);
             gsl_integration_cquad_workspace* workspace_cquad = gsl_integration_cquad_workspace_alloc(1024*1024*2);
 

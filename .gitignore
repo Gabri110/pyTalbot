@@ -1,5 +1,4 @@
 __pycache__
 results
 .DS_store
-lib
-build
+*.so
