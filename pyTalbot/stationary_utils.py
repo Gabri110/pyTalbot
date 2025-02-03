@@ -1,5 +1,4 @@
 import numpy as np
-from numba import njit
 
 
 
@@ -28,7 +27,6 @@ def g_n_rect_delta(n, config):
     return result
 
 
-@njit
 def stationary_coeff(k_n,t,z,omega):
     '''Computes the coefficients $c_n(t,z)$ for each allowed value of n,z for the parameters in config.
     

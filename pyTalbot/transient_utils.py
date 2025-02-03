@@ -84,9 +84,8 @@ def perform_integrals(config):
     ptr = lambda array: array.ctypes.data_as(ptr_t)
 
     # We load the compiled libraries with ctypes
-    lib_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib')
-    lib_extension = '.dll' if sys.platform == 'win32' else '.so' if sys.platform.startswith('linux') else '.dylib'
-    fast_integrals = ctypes.CDLL(os.path.join(lib_path, f'libintegrals{lib_extension}'))
+    lib_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'src')
+    fast_integrals = ctypes.CDLL(os.path.join(lib_path, f'integrals.so'))
 
     fast_integrals.compute_integrals.argtypes = [
         ptr_t, ptr_t, ptr_t, ptr_t, ptr_t, ptr_t, ptr_t,
