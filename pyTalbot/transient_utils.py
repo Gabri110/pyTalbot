@@ -95,10 +95,10 @@ def perform_integrals(config):
     fast_integrals.compute_integrals.restype = None
 
     # We perform the integrals
-    limit = 50_000
-    eps_abs = 1e-7
+    limit = 100_000
+    eps_abs = 1e-6
     eps_rel = 1e-4
-    epsilon = 1e-6
+    epsilon = 1e-5
 
     fast_integrals.compute_integrals(
         ptr(partial_integral_cos), ptr(partial_integral_sin), ptr(x_min), ptr(x_max), 
