@@ -57,15 +57,19 @@ void compute_integrals(double* partial_integral_cos, double* partial_integral_si
                         double omega, int start, int end, double epsilon)
 {
 
-
     for (int n = fmax(start,1); n < end; ++n) // We skip the n,t,z=0 cases as they are trivially null.
     {
 
         #pragma omp parallel for schedule(dynamic)
         for (int t = 1; t < t_size; ++t)
         {
+            FILE *stream;
+
+            // Print the iteration in clog.txt
             if (t== t_size-1){
-                printf("The value of n is: %d. \n",n);
+                stream = fopen("pyTalbot/src/clog.txt", "w");
+                fprintf(stream, "The value of n is: %d. \n",n);
+                fclose (stream);
             }
             
             gsl_integration_workspace* workspace = gsl_integration_workspace_alloc(1024*1024*8);
@@ -107,7 +111,10 @@ void compute_integrals(double* partial_integral_cos, double* partial_integral_si
                                     &partial_integral_cos[(n*t_size+t)*z_size+z], NULL, NULL);
 
                                 if (status) {
-                                    printf("Error at cosine for n = %d, z = %d and t = %d \n",n,z,t);
+                                    stream = fopen("pyTalbot/src/clog.txt", "w");
+                                    fprintf(stream, "Error at cosine for n = %d, z = %d and t = %d \n",n,z,t);
+                                    fclose (stream);
+
                                     partial_integral_cos[(n*t_size+t)*z_size+z] = 0.;
                                 }
                             }
@@ -122,7 +129,10 @@ void compute_integrals(double* partial_integral_cos, double* partial_integral_si
                                     &partial_integral_cos[((n-start) * t_size+t)*z_size+z], NULL, NULL);
 
                                 if (status) {
-                                    printf("Error at sine for n = %d, z = %d and t = %d \n",n,z,t);
+                                    stream = fopen("pyTalbot/src/clog.txt", "w");
+                                    fprintf(stream, "Error at sine for n = %d, z = %d and t = %d \n",n,z,t);
+                                    fclose (stream);
+
                                     partial_integral_sin[((n-start) * t_size+t)*z_size+z] = 0.;
                                 }
                             }

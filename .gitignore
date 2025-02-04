@@ -2,3 +2,4 @@ __pycache__
 results
 .DS_store
 *.so
+clog.txt

@@ -29,6 +29,10 @@ RUN apt-get --yes -qq update \
  && apt-get --yes -qq clean \
  && rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install requirements.txt
+# Make sure you copy the requirements.txt to the container
+COPY requirements.txt /app/requirements.txt
+
+# Install the Python dependencies
+RUN pip3 install -r /app/requirements.txt
 
 CMD [ "/bin/bash" ]

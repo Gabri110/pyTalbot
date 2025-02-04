@@ -29,7 +29,7 @@ if not os.path.isdir(results_path): # Create the results folder if it doesn't ex
     os.makedirs(results_path)
 
 # Where create the folder to store the simulation's output
-folder_name = 'd_λ=' + str(config.d/config._lambda) + '_w_λ=' + str(config.w/config._lambda) + '_' + datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+folder_name = 'd_lambda=' + str(config.d/config._lambda) + '_w_lambda=' + str(config.w/config._lambda) + '_' + datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 folder_path = os.path.join(results_path, folder_name)
 if not os.path.isdir(folder_path): # Create the folder if it doesn't exist
     os.makedirs(folder_path)
@@ -53,18 +53,18 @@ if make_transient:
     # We plot the solution at each time t_i at cache
     for t_i in tqdm(range(0, config.N_t)):
         title = 'Intensity of the field at $t = ' + str(round(t_i * config.delta_t/(config.z_T),4)) + '\\, Z_T/c$ for $\\frac{d}{\\lambda}='+str(1/config._lambda)+'$ and $\\frac{w}{\\lambda}=' + str(config.w/config._lambda)+'$'
-        file_name = 'd_λ=' + str(1/config._lambda) + '_w_λ=' + str(config.w/config._lambda)+'_' + str(t_i).rjust(len(str(config.N_t)),'0') + '_carpet.png'
+        file_name = 'd_lambda=' + str(1/config._lambda) + '_w_lambda=' + str(config.w/config._lambda)+'_' + str(t_i).rjust(len(str(config.N_t)),'0') + '_carpet.png'
         plot_field(field[t_i], config, cache_path, title, file_name, save_field = False, cmap = colour)
 
     # We plot the final image also somewhere else to store it
     final_field = field[config.N_t - 1]
     del field
-    file_name = 'd_λ=' + str(1/config._lambda) + '_w_λ=' + str(config.w/config._lambda)+'_TRANSIENT_carpet.png'
+    file_name = 'd_lambda=' + str(1/config._lambda) + '_w_lambda=' + str(config.w/config._lambda)+'_TRANSIENT_carpet.png'
     plot_field(final_field, config, folder_path, title, file_name, save_field = False, cmap = colour)
 
     # We make the video
     if make_video:
-        output_name = 'Talbot_carpet_d_λ=' + str(1/config._lambda) + '_w_λ=' + str(config.w/config._lambda) + '.mp4'
+        output_name = 'Talbot_carpet_d_lambda=' + str(1/config._lambda) + '_w_lambda=' + str(config.w/config._lambda) + '.mp4'
         output_path = os.path.join(folder_path, output_name)
         video_from_images(cache_path, output_path)
 
@@ -80,10 +80,10 @@ if make_stationary:
     stationary_field = resize_stationary_field(stationary_field, config) # We use the symmetry of the solution to extend the domain to -d <= x <= d
 
     title = 'Intensity of the stationary field at $t = ' + str(round(t_i * config.delta_t/(config.z_T),4)) + '\\, Z_T/c$ for $\\frac{d}{\\lambda}='+str(1/config._lambda)+'$ and $\\frac{w}{\\lambda}=' + str(config.w/config._lambda)+'$'
-    file_name = 'd_λ=' + str(1/config._lambda) + '_w_λ=' + str(config.w/config._lambda)+'_STATIONARY_carpet.png'
+    file_name = 'd_lambda=' + str(1/config._lambda) + '_w_lambda=' + str(config.w/config._lambda)+'_STATIONARY_carpet.png'
     plot_field(stationary_field, config, folder_path, title, file_name, save_field = False, cmap = colour) # We plot the solution
 
     field_difference = stationary_field - final_field
     title = 'Difference of the intensity of the stationary and transient fields at $t = ' + str(round(t_i * config.delta_t/(config.z_T),4)) + '\\, Z_T/c$ for $\\frac{d}{\\lambda}='+str(1/config._lambda)+'$ and $\\frac{w}{\\lambda}=' + str(config.w/config._lambda)+'$'
-    file_name = 'd_λ=' + str(1/config._lambda) + '_w_λ=' + str(config.w/config._lambda)+'_DIFFERENCE_carpet.png'
+    file_name = 'd_lambda=' + str(1/config._lambda) + '_w_lambda=' + str(config.w/config._lambda)+'_DIFFERENCE_carpet.png'
     plot_field(field_difference, config, folder_path, title, file_name, save_field = False, difference = True, cmap = colour) # We plot the difference between the stationary and transient case
