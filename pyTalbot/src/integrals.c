@@ -13,7 +13,7 @@ how to efficiently evaluate integrals in Python through the GSL library.
 #include <gsl/gsl_sf_bessel.h>
 #include <gsl/gsl_errno.h>
 
-// We multiply the integrand by 100 and then divide the end result by 100 to mitigate roundoff errors
+// We multiply the integrand by 100 and then divide the end result by 1000 to mitigate roundoff errors
 double integrand_sin(double tau, void* generic_params)
 {
     const double* params = (double*)generic_params;
@@ -31,7 +31,7 @@ double integrand_sin(double tau, void* generic_params)
         return sin(omega * tau) * gsl_sf_bessel_J1(k * u) / u * 1000.;
 }
 
-// We multiply the integrand by 100 and then divide the end result by 100 to mitigate roundoff errors
+// We multiply the integrand by 100 and then divide the end result by 1000 to mitigate roundoff errors
 double integrand_cos(double tau, void* generic_params)
 {
     const double* params = (double*)generic_params;
@@ -54,13 +54,15 @@ void compute_integrals(double* partial_integral_cos, double* partial_integral_si
                         double* k_n_values, double* t_values, double* z_values, 
                         int n_size, int t_size, int z_size, 
                         int limit, double epsabs, double epsrel, 
-                        double omega, double epsilon)
+                        double omega, int start, int end, double epsilon)
 {
-    #pragma omp parallel for collapse(2) schedule(dynamic)
-    for (int n = n_size - 1; n > 0; --n) // We skip the n,t,z=0 cases as they are trivially null.
+
+
+    for (int n = fmax(start,1); n < end; ++n) // We skip the n,t,z=0 cases as they are trivially null.
     {
 
-        for (int t = t_size - 1; t > 0; --t)
+        #pragma omp parallel for schedule(dynamic)
+        for (int t = 1; t < t_size; ++t)
         {
             if (t== t_size-1){
                 printf("The value of n is: %d. \n",n);
@@ -69,7 +71,7 @@ void compute_integrals(double* partial_integral_cos, double* partial_integral_si
             gsl_integration_workspace* workspace = gsl_integration_workspace_alloc(1024*1024*8);
             gsl_integration_cquad_workspace* workspace_cquad = gsl_integration_cquad_workspace_alloc(1024*1024*2);
 
-            double err [[maybe_unused]];
+            double err __attribute__((unused));
             
 
             double params[5];
@@ -115,17 +117,18 @@ void compute_integrals(double* partial_integral_cos, double* partial_integral_si
                              &partial_integral_sin[(n*t_size+t)*z_size+z], &err);
                     
                 if (status) {
-                                gsl_integration_cquad(&func_sin, x_min[t*z_size+z], x_max[t*z_size+z], 
+                                status = gsl_integration_cquad(&func_sin, x_min[t*z_size+z], x_max[t*z_size+z], 
                                     epsabs, epsrel, workspace_cquad, 
-                                    &partial_integral_cos[(n*t_size+t)*z_size+z], NULL, NULL);
+                                    &partial_integral_cos[((n-start) * t_size+t)*z_size+z], NULL, NULL);
+
                                 if (status) {
                                     printf("Error at sine for n = %d, z = %d and t = %d \n",n,z,t);
-                                    partial_integral_sin[(n*t_size+t)*z_size+z] = 0.;
+                                    partial_integral_sin[((n-start) * t_size+t)*z_size+z] = 0.;
                                 }
                             }
 
 
-                // We multiply the integrand by 100 and then divide the end result by 100 to mitigate roundoff errors
+                // We multiply the integrand by 100 and then divide the end result by 1000 to mitigate roundoff errors
                 partial_integral_cos[(n*t_size+t)*z_size+z] /= 1000.;
                 partial_integral_sin[(n*t_size+t)*z_size+z] /= 1000.;
 
