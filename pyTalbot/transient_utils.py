@@ -1,6 +1,6 @@
 import numpy as np
 from tqdm import tqdm
-from perform_integrals import perform_integrals
+from pyTalbot.perform_integrals import perform_integrals
 
 
 def g_n_rect_delta(n, config):
