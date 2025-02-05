@@ -8,8 +8,8 @@
 #SBATCH --cpus-per-task=2
 #SBATCH --mem=8GB                 # Total memory for the job
 
-#SBATCH --time=100:00:00          # Maximum time for the job (HH:MM:SS)
-#SBATCH --partition=general       # Specify the partition (modify if needed)
+#SBATCH --time=06:00:00           # Maximum time for the job (HH:MM:SS)
+#SBATCH --partition=medium        # Specify the partition (modify if needed)
 #SBATCH --account=gybarra         # Account name (modify if needed)
 
 # Print information about the job and the node
