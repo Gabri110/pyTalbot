@@ -2,14 +2,12 @@
 #SBATCH --job-name=talbot_job     # Job name
 #SBATCH --output=talbot_job%j.txt # Standard output and error log (%j is the job ID)
 
-#SBATCH --nodes=4
-#SBATCH --tasks-per-node=1
-#SBATCH --ntasks=4                # Number of tasks
+#SBATCH --nodes=12
 #SBATCH --cpus-per-task=2
-#SBATCH --mem=8GB                 # Total memory for the job
+#SBATCH --mem=80GB                 # Total memory for the job
 
-#SBATCH --time=06:00:00           # Maximum time for the job (HH:MM:SS)
-#SBATCH --partition=medium        # Specify the partition
+#SBATCH --time=5-00:00:00           # Maximum time for the job (HH:MM:SS)
+#SBATCH --partition=large        # Specify the partition
 
 # Print information about the job and the node
 echo "Starting SLURM job..."
@@ -26,9 +24,15 @@ module load OpenMPI/4.0.5-GCC-10.2.0    # Load OpenMPI
 conda activate talbotenv
 
 # Step 2: Run Makefile (compiling code using make)
+rm pyTalbot/pyTalbot/src/*.so
 echo "Running Makefile..."
 make -C pyTalbot/pyTalbot/src/  # Run the Makefile (you can specify the target if needed)
 
+# Fixes common InfiniBand errors
+export UCX_TLS=tcp
+export UCX_LOG_LEVEL=debug
+
+
 # Step 3: Run Python script
 echo "Running Python script..."
-python3 pyTalbot/main.py
+mpirun python3 pyTalbot/main.py

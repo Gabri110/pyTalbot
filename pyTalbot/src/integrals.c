@@ -123,7 +123,7 @@ void compute_integrals(double* partial_integral_cos, double* partial_integral_si
                     
                 status = gsl_integration_qag(&func_sin, x_min[t*z_size+z], x_max[t*z_size+z], 
                              epsabs, epsrel, limit, 5, workspace, 
-                             &partial_integral_sin[(n*t_size+t)*z_size+z], &err);
+                             &partial_integral_sin[((n-start) * t_size+t)*z_size+z], &err);
                     
                 if (status) {
                                 status = gsl_integration_cquad(&func_sin, x_min[t*z_size+z], x_max[t*z_size+z], 
