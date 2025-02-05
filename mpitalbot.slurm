@@ -9,8 +9,7 @@
 #SBATCH --mem=8GB                 # Total memory for the job
 
 #SBATCH --time=06:00:00           # Maximum time for the job (HH:MM:SS)
-#SBATCH --partition=medium        # Specify the partition (modify if needed)
-#SBATCH --account=gybarra         # Account name (modify if needed)
+#SBATCH --partition=medium        # Specify the partition
 
 # Print information about the job and the node
 echo "Starting SLURM job..."
