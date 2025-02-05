@@ -57,7 +57,7 @@ def perform_integrals(config):
     rank = comm.Get_rank()
     size = comm.Get_size()
 
-    fprint("This is process %d of %d.", rank,size)
+    print(f"This is process {rank} of {size}.")
 
     # We store the range of n, kn and gn in arrays of length N_max
     n_values = np.linspace(0, config.N_max-1, config.N_max, dtype=int)
