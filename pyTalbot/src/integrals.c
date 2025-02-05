@@ -66,8 +66,8 @@ void compute_integrals(double* partial_integral_cos, double* partial_integral_si
             FILE *stream;
 
             // Print the iteration in clog.txt
-            if (t== t_size-1){
-                stream = fopen("pyTalbot/src/clog.txt", "w");
+            if (t == 1){
+                stream = fopen("clog.txt", "a");
                 fprintf(stream, "The value of n is: %d. \n",n);
                 fflush(stream);
                 fclose (stream);
@@ -104,20 +104,20 @@ void compute_integrals(double* partial_integral_cos, double* partial_integral_si
 
                 status = gsl_integration_qag(&func_cos, x_min[t*z_size+z], x_max[t*z_size+z], 
                              epsabs, epsrel, limit, 5, workspace, 
-                             &partial_integral_cos[(n*t_size+t)*z_size+z], &err);
+                             &partial_integral_cos[((n-start) * t_size+t)*z_size+z], &err);
                     
                 if (status) {
                                 status = gsl_integration_cquad(&func_cos, x_min[t*z_size+z], x_max[t*z_size+z], 
                                     epsabs, epsrel, workspace_cquad, 
-                                    &partial_integral_cos[(n*t_size+t)*z_size+z], NULL, NULL);
+                                    &partial_integral_cos[((n-start) * t_size+t)*z_size+z], NULL, NULL);
 
                                 if (status) {
-                                    stream = fopen("pyTalbot/src/clog.txt", "w");
+                                    stream = fopen("clog.txt", "a");
                                     fprintf(stream, "Error at cosine for n = %d, z = %d and t = %d \n",n,z,t);
                                     fflush(stream);
                                     fclose (stream);
 
-                                    partial_integral_cos[(n*t_size+t)*z_size+z] = 0.;
+                                    partial_integral_cos[((n-start) * t_size+t)*z_size+z] = 0.;
                                 }
                             }
                     
@@ -131,7 +131,7 @@ void compute_integrals(double* partial_integral_cos, double* partial_integral_si
                                     &partial_integral_cos[((n-start) * t_size+t)*z_size+z], NULL, NULL);
 
                                 if (status) {
-                                    stream = fopen("pyTalbot/src/clog.txt", "w");
+                                    stream = fopen("clog.txt", "a");
                                     fprintf(stream, "Error at sine for n = %d, z = %d and t = %d \n",n,z,t);
                                     fflush(stream);
                                     fclose (stream);
@@ -142,8 +142,8 @@ void compute_integrals(double* partial_integral_cos, double* partial_integral_si
 
 
                 // We multiply the integrand by 100 and then divide the end result by 1000 to mitigate roundoff errors
-                partial_integral_cos[(n*t_size+t)*z_size+z] /= 1000.;
-                partial_integral_sin[(n*t_size+t)*z_size+z] /= 1000.;
+                partial_integral_cos[((n-start) * t_size+t)*z_size+z] /= 1000.;
+                partial_integral_sin[((n-start) * t_size+t)*z_size+z] /= 1000.;
 
             }
 

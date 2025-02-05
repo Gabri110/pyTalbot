@@ -2,7 +2,7 @@ CC = gcc
 
 # For Mac
 # CFLAGS = -shared -fPIC -Xpreprocessor -fopenmp
-# LIBS = -lm -lgsl -lgslcblas -L/usr/local/opt/libomp/lib -lomp4
+# LIBS = -lm -lgsl -lgslcblas -L/usr/local/opt/libomp/lib -lomp
 
 # For Linux (DEFAULT)
 CFLAGS = -shared -fPIC -fopenmp
