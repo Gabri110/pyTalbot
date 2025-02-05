@@ -17,9 +17,13 @@ echo "Running on node: $(hostname)"
 echo "Job ID: $SLURM_JOB_ID"
 
 # Step 1: Load necessary modules (modify based on system configuration)
-module load Python      # Load the Anaconda module if it's available
-module load gsl         # Load the GSL module (check availability)
-module load ffmpeg      # Load the FFmpeg module (check availability)
+module load Anaconda3/py010822          # Load the Anaconda module if it's available
+module load GSL/2.7-GCC-10.3.0          # Load the GSL module (check availability)
+module load FFmpeg/4.3.2-GCCcore-10.3.0 # Load the FFmpeg module (check availability)
+module load OpenMPI/4.0.5-GCC-10.2.0    # Load OpenMPI
+
+# Enter conda
+conda activate talbotenv
 
 # Step 2: Run Makefile (compiling code using make)
 echo "Running Makefile..."
@@ -27,6 +31,4 @@ make -C pyTalbot/pyTalbot/src/  # Run the Makefile (you can specify the target i
 
 # Step 3: Run Python script
 echo "Running Python script..."
-mpirun python3 pyTalbot/main.py
-
-echo "Job completed successfully!"
+python3 pyTalbot/main.py
