@@ -86,7 +86,7 @@ def perform_integrals(config):
     eps_rel = 1e-5
     epsilon = 5e-6
 
-
+    # We compute the integrals
     fast_integrals.compute_integrals(
             ptr(partial_integral_cos_rank), ptr(partial_integral_sin_rank), ptr(x_min), ptr(x_max), 
             ptr(k_n_values), ptr(t_values), ptr(z_values), 
@@ -94,8 +94,8 @@ def perform_integrals(config):
             limit, eps_abs, eps_rel, 
             config.omega, start, end, epsilon
         )
-        
-    print(f"The node {rank} executed the C code without error. The shape of partial_integral_sin_rank is {partial_integral_sin_rank.shape}. {partial_integral_sin_rank[4,7,6]}")
+
+
     comm.Barrier()
     
     if rank == 0:
@@ -107,10 +107,11 @@ def perform_integrals(config):
         
     comm.Gather(partial_integral_sin_rank, partial_integral_sin_gathered, root=0)
     comm.Gather(partial_integral_cos_rank, partial_integral_cos_gathered, root=0)
-    
-    print(f"The node {rank} gathered without error.")
 
-    if rank == 0:
+    # We no longer need the extra nodes
+    if rank != 0:
+        exit("Not master node")
+    else:
     
         partial_integral_sin = np.empty((len(n_values),len(t_values),len(z_values)), dtype=np.float64)
         partial_integral_cos = np.empty((len(n_values),len(t_values),len(z_values)), dtype=np.float64)

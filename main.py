@@ -6,6 +6,12 @@ from pyTalbot.transient_utils import generate_amplitude_field, resize_field
 from pyTalbot.stationary_utils import generate_stationary_amplitude_field, resize_stationary_field
 from pyTalbot.plotter import video_from_images, plot_field
 from datetime import datetime
+from mpi4py import MPI
+
+# We kill the programme if it's not the master
+comm = MPI.COMM_WORLD
+rank = comm.Get_rank()
+
 
 ##################################
 # Configuration of the simulation.
@@ -20,23 +26,25 @@ colour = 'gray' # Colour of the plots. Must be str. Suggested picks are 'gray' a
 
 # We print the parameters of the simulation
 config = TalbotConfig()
-print(config)
 
-# Where define the location of the results folder
-my_path = os.path.dirname(os.path.abspath(__file__))
-results_path = os.path.join(my_path, 'results')
-if not os.path.isdir(results_path): # Create the results folder if it doesn't exist
-    os.makedirs(results_path)
+if rank == 0:
+    print(config)
 
-# Where create the folder to store the simulation's output
-folder_name = 'd_lambda=' + str(config.d/config._lambda) + '_w_lambda=' + str(config.w/config._lambda) + '_' + datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-folder_path = os.path.join(results_path, folder_name)
-if not os.path.isdir(folder_path): # Create the folder if it doesn't exist
-    os.makedirs(folder_path)
+    # Where define the location of the results folder
+    my_path = os.path.dirname(os.path.abspath(__file__))
+    results_path = os.path.join(my_path, 'results')
+    if not os.path.isdir(results_path): # Create the results folder if it doesn't exist
+        os.makedirs(results_path)
 
-# Save the parameters of the simulation into a file
-with open(os.path.join(folder_path, 'parameters.txt'), 'w') as file:
-    file.write(str(config)) 
+    # Where create the folder to store the simulation's output
+    folder_name = 'd_lambda=' + str(config.d/config._lambda) + '_w_lambda=' + str(config.w/config._lambda) + '_' + datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    folder_path = os.path.join(results_path, folder_name)
+    if not os.path.isdir(folder_path): # Create the folder if it doesn't exist
+        os.makedirs(folder_path)
+
+    # Save the parameters of the simulation into a file
+    with open(os.path.join(folder_path, 'parameters.txt'), 'w') as file:
+        file.write(str(config)) 
 
 
 if make_transient:
