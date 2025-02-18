@@ -86,11 +86,12 @@ if make_stationary:
     stationary_field = generate_stationary_amplitude_field(config)
     stationary_field = stationary_field**2 # We compute the intensity of the light
 
-    title = 'Intensity of the stationary field at $t = ' + str(round(t_i * config.delta_t/(config.z_T),4)) + '\\, Z_T/c$ for $\\frac{d}{\\lambda}='+str(1/config._lambda)+'$ and $\\frac{w}{\\lambda}=' + str(config.w/config._lambda)+'$'
+    title = 'Intensity of the stationary field at $t = ' + str(round((config.N_t-1) * config.delta_t/(config.z_T),4)) + '\\, Z_T/c$ for $\\frac{d}{\\lambda}='+str(1/config._lambda)+'$ and $\\frac{w}{\\lambda}=' + str(config.w/config._lambda)+'$'
     file_name = 'd_lambda=' + str(1/config._lambda) + '_w_lambda=' + str(config.w/config._lambda)+'_STATIONARY_carpet.png'
     plot_field(stationary_field, config, folder_path, title, file_name, save_field = False, cmap = colour) # We plot the solution
 
-    field_difference = stationary_field - final_field
-    title = 'Difference of the intensity of the stationary and transient fields at $t = ' + str(round(t_i * config.delta_t/(config.z_T),4)) + '\\, Z_T/c$ for $\\frac{d}{\\lambda}='+str(1/config._lambda)+'$ and $\\frac{w}{\\lambda}=' + str(config.w/config._lambda)+'$'
-    file_name = 'd_lambda=' + str(1/config._lambda) + '_w_lambda=' + str(config.w/config._lambda)+'_DIFFERENCE_carpet.png'
-    plot_field(field_difference, config, folder_path, title, file_name, save_field = False, difference = True, cmap = colour) # We plot the difference between the stationary and transient case
+    if make_transient:
+        field_difference = stationary_field - final_field
+        title = 'Difference of the intensity of the stationary and transient fields at $t = ' + str(round((config.N_t-1) * config.delta_t/(config.z_T),4)) + '\\, Z_T/c$ for $\\frac{d}{\\lambda}='+str(1/config._lambda)+'$ and $\\frac{w}{\\lambda}=' + str(config.w/config._lambda)+'$'
+        file_name = 'd_lambda=' + str(1/config._lambda) + '_w_lambda=' + str(config.w/config._lambda)+'_DIFFERENCE_carpet.png'
+        plot_field(field_difference, config, folder_path, title, file_name, save_field = False, difference = True, cmap = colour) # We plot the difference between the stationary and transient case

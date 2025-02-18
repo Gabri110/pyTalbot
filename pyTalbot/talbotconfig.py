@@ -42,7 +42,7 @@ class TalbotConfig:
         self.c = 1. # Speed of light
         self.d = 1. # Distance between gratings we fix it = 1
         self._lambda = self.d / 100. # Wavelength
-        self.w = 2 * self._lambda # Width of the gratings
+        self.w = 5 * self._lambda # Width of the gratings
 
         # Related relevant magnitudes
         self.omega = 2 * np.pi * self.c / self._lambda # Angular frequency of the source
