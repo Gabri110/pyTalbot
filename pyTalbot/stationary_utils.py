@@ -22,7 +22,7 @@ def g_n_rect_delta(n, config):
 
     original_settings = np.seterr()
     np.seterr(divide='ignore', invalid='ignore')
-    result = np.where(n == 0, 2, 2 * 2 * np.sin(n * np.pi * config.w) / (np.pi * n * config.w)) # We multiply by 2 to account at the same time for g_n and g_(-n)
+    result = np.where(n == 0, 1, 2*np.sin(n * np.pi * config.w) / (np.pi * n * config.w)) # We multiply by 2 to account at the same time for g_n and g_(-n)
     np.seterr(**original_settings)
     return result
 
