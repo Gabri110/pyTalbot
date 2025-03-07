@@ -51,8 +51,8 @@ def perform_integrals(config):
     np.maximum(z_values[None, :], t_values[:, None], out=x_max)  # Max between z_values[j] and t_values[i]
 
     # Distribute loop iterations
-    start = rank * (len(n_values) // size)
-    end = (rank + 1) * (len(n_values) // size) if rank != size-1 else len(n_values)
+    start = rank * np.ceil(len(n_values) / size).astype('int')
+    end = (rank + 1) * np.ceil(len(n_values) / size).astype('int') if rank != size-1 else len(n_values)
 
     # Prealocate the result arrays. Their size depends on the rank
     partial_integral_sin_rank = np.zeros((end - start,len(t_values),len(z_values)))
@@ -98,6 +98,7 @@ def perform_integrals(config):
 
     comm.Barrier()
     
+    # We preparate the output arrays
     if rank == 0:
         partial_integral_sin_gathered = np.empty((size,) + partial_integral_sin_rank.shape, dtype=np.float64)
         partial_integral_cos_gathered = np.empty((size,) + partial_integral_cos_rank.shape, dtype=np.float64)
@@ -105,23 +106,29 @@ def perform_integrals(config):
         partial_integral_sin_gathered = None
         partial_integral_cos_gathered = None
 
-        
+    # We gather everything in the first node
     comm.Gather(partial_integral_sin_rank, partial_integral_sin_gathered, root=0)
     comm.Gather(partial_integral_cos_rank, partial_integral_cos_gathered, root=0)
 
 
     # We no longer need the extra nodes
     if rank != 0:
-        exit("Not master node")
+        print(f"Rank {rank}: Finished!")
+        exit()
     else:
 
-        resummed_integral_sin = np.empty((len(n_values),len(t_values),len(z_values)), dtype=np.float64)
-        resummed_integral_cos = np.empty((len(n_values),len(t_values),len(z_values)), dtype=np.float64)
+        resummed_integral_sin_long = np.empty((size * np.ceil(len(n_values) / size).astype('int'), len(t_values),len(z_values)), dtype=np.float64)
+        resummed_integral_cos_long = np.empty((size * np.ceil(len(n_values) / size).astype('int'), len(t_values),len(z_values)), dtype=np.float64)
 
         # Post-process aggregated results
-        np.concatenate(partial_integral_sin_gathered, out=resummed_integral_sin)
-        np.concatenate(partial_integral_cos_gathered, out=resummed_integral_cos)
+        np.concatenate(partial_integral_sin_gathered, out=resummed_integral_sin_long)
+        np.concatenate(partial_integral_cos_gathered, out=resummed_integral_cos_long)
         del partial_integral_sin_gathered, partial_integral_cos_gathered, partial_integral_sin_rank, partial_integral_cos_rank
+
+        # We adjust the shape
+        resummed_integral_sin = resummed_integral_sin_long[:len(n_values),:,:]
+        resummed_integral_cos = resummed_integral_cos_long[:len(n_values),:,:]
+        del resummed_integral_sin_long, resummed_integral_cos_long
 
 
         # Cumulative sum along the 't' axis (axis=1) to recover the full integrals
