@@ -1,0 +1,32 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: pyTalbot
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Gabriel
+    family-names: Ybarra Marcaida
+    email: gabriybarra@gmail.com
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.14988572
+    description: Zenodo repository
+repository-code: 'https://github.com/Gabri110/pyTalbot'
+repository: 'https://doi.org/10.5281/zenodo.14988572'
+abstract: >-
+  This project's aim is to simulate the formation of the
+  Talbot effect in the near field of an infinite periodic
+  diffraction grating of Fourier coefficients gn. This
+  corresponds to the numeric part of the attached report.
+keywords:
+  - Talbot effect
+  - Diffraction
+  - Wave equation
+license: MIT
+commit: 96ec6d3
+version: v0.1
+date-released: '2025-03-07'
