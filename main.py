@@ -6,11 +6,16 @@ from pyTalbot.transient_utils import generate_amplitude_field
 from pyTalbot.stationary_utils import generate_stationary_amplitude_field
 from pyTalbot.plotter import video_from_images, plot_field
 from datetime import datetime
-from mpi4py import MPI
 
-# We kill the programme if it's not the master
-comm = MPI.COMM_WORLD
-rank = comm.Get_rank()
+try:
+    from mpi4py import MPI
+
+    comm = MPI.COMM_WORLD
+    rank = comm.Get_rank()
+except ImportError:
+    print("mpi4py isn't installed. Running on a single node.")
+    rank = 0
+
 
 
 ##################################

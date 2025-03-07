@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import ctypes
-from mpi4py import MPI
+
 
 def perform_integrals(config):
     '''This mehtod computes the integrals in (4.8) using GSL's QAG and CQUAD integration methods.
@@ -11,7 +11,7 @@ def perform_integrals(config):
     Note that we must have integrands independent of t, so we use the identity 
     sin(tau-t) = cos(t)sin(tau) - sin(t)cos(tau) and separate each integral into two different ones.
 
-    This function is accelerated through MPI and OpenMP.
+    This function is accelerated through OpenMP and, optionally, MPI.
 
 
     Parameters
@@ -26,9 +26,17 @@ def perform_integrals(config):
     '''
 
     # Start MPI
-    comm = MPI.COMM_WORLD
-    rank = comm.Get_rank()
-    size = comm.Get_size()
+    try:
+        from mpi4py import MPI
+
+        comm = MPI.COMM_WORLD
+        size = comm.Get_size()
+        rank = comm.Get_rank()
+        use_MPI = True
+    except ImportError:
+        use_MPI = False
+        rank = 0
+        size = 1
 
     print(f"This is process {rank} of {size}.")
 
@@ -95,28 +103,27 @@ def perform_integrals(config):
             config.omega, start, end, epsilon
         )
 
-
-    comm.Barrier()
-    
-    # We preparate the output arrays
-    if rank == 0:
-        partial_integral_sin_gathered = np.empty((size,) + partial_integral_sin_rank.shape, dtype=np.float64)
-        partial_integral_cos_gathered = np.empty((size,) + partial_integral_cos_rank.shape, dtype=np.float64)
-    else:
-        partial_integral_sin_gathered = None
-        partial_integral_cos_gathered = None
-
-    # We gather everything in the first node
-    comm.Gather(partial_integral_sin_rank, partial_integral_sin_gathered, root=0)
-    comm.Gather(partial_integral_cos_rank, partial_integral_cos_gathered, root=0)
-
-
-    # We no longer need the extra nodes
-    if rank != 0:
+    if use_MPI:
         print(f"Rank {rank}: Finished!")
-        exit()
-    else:
+        comm.Barrier()
+    
+        # We preparate the output arrays
+        if rank == 0:
+            partial_integral_sin_gathered = np.empty((size,) + partial_integral_sin_rank.shape, dtype=np.float64)
+            partial_integral_cos_gathered = np.empty((size,) + partial_integral_cos_rank.shape, dtype=np.float64)
+        else:
+            partial_integral_sin_gathered = None
+            partial_integral_cos_gathered = None
 
+        # We gather everything in the first node
+        comm.Gather(partial_integral_sin_rank, partial_integral_sin_gathered, root=0)
+        comm.Gather(partial_integral_cos_rank, partial_integral_cos_gathered, root=0)
+
+
+        # We no longer need the extra nodes
+        if rank != 0:
+            exit()
+            
         resummed_integral_sin_long = np.empty((size * np.ceil(len(n_values) / size).astype('int'), len(t_values),len(z_values)), dtype=np.float64)
         resummed_integral_cos_long = np.empty((size * np.ceil(len(n_values) / size).astype('int'), len(t_values),len(z_values)), dtype=np.float64)
 
@@ -129,19 +136,24 @@ def perform_integrals(config):
         resummed_integral_sin = resummed_integral_sin_long[:len(n_values),:,:]
         resummed_integral_cos = resummed_integral_cos_long[:len(n_values),:,:]
         del resummed_integral_sin_long, resummed_integral_cos_long
+    else:
+        resummed_integral_sin = partial_integral_sin_rank
+        resummed_integral_cos = partial_integral_cos_rank
+        del partial_integral_sin_rank, partial_integral_cos_rank
 
 
-        # Cumulative sum along the 't' axis (axis=1) to recover the full integrals
-        for i in range(1, resummed_integral_sin.shape[1]):
-            resummed_integral_sin[:, i, :] += resummed_integral_sin[:, i-1, :]
-            resummed_integral_cos[:, i, :] += resummed_integral_cos[:, i-1, :]
+
+    # Cumulative sum along the 't' axis (axis=1) to recover the full integrals
+    for i in range(1, resummed_integral_sin.shape[1]):
+        resummed_integral_sin[:, i, :] += resummed_integral_sin[:, i-1, :]
+        resummed_integral_cos[:, i, :] += resummed_integral_cos[:, i-1, :]
 
 
-        # Initialize the result array
-        result = np.empty((len(n_values), len(t_values), len(z_values)))
-        result = np.sin(config.omega * t_values[None,:,None]) * resummed_integral_cos \
-            - np.cos(config.omega * t_values[None,:,None]) * resummed_integral_sin # sin(tau-t) = cos(t)sin(tau) - sin(t)cos(tau)
+    # Initialize the result array
+    result = np.empty((len(n_values), len(t_values), len(z_values)))
+    result = np.sin(config.omega * t_values[None,:,None]) * resummed_integral_cos \
+        - np.cos(config.omega * t_values[None,:,None]) * resummed_integral_sin # sin(tau-t) = cos(t)sin(tau) - sin(t)cos(tau)
 
-        del resummed_integral_sin, resummed_integral_cos
+    del resummed_integral_sin, resummed_integral_cos
 
     return result if rank == 0 else None
