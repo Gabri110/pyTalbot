@@ -1,6 +1,6 @@
 ### pyTalbot
 
-This project's aim is to plot the formation of the Talbot effect in the near field of an infinite periodic diffraction grating of Fourier coefficients $g_n$. This corresponds to the numeric part of the attached report.
+This project's aim is to plot the formation of the Talbot effect in the near field of an infinite periodic diffraction grating of Fourier coefficients $g_n$. This corresponds to the numeric part of the attached paper. See arXiv [2507.00820](https://arxiv.org/abs/2507.00820).
 
 ## Requirements
 
