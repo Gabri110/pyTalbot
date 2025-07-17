@@ -41,7 +41,7 @@ class TalbotConfig:
         self.A = 1. # Amplitude of source
         self.c = 1. # Speed of light
         self.d = 1. # Distance between gratings we fix it = 1
-        self._lambda = self.d / 10. # Wavelength
+        self._lambda = self.d / 100. # Wavelength
         self.l = 2 * self._lambda # Width of the gratings
 
         # Related relevant magnitudes
@@ -51,7 +51,7 @@ class TalbotConfig:
         # Grid parameters
         self.N_x = 27*10 # Number of samples in x direction
         self.N_z = 192*10 # Number of samples in z direction
-        self.N_t = 50 # Number of samples in time
+        self.N_t = 250 # Number of samples in time
 
         # Simulation parameters
         self.N_max = int(self.d / self._lambda * 5) # Number of terms in the series
