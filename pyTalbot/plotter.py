@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 import numpy as np
 from numpy import savetxt
-
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 def plot_field(field, config, folder_path, title, file_name, save_field = False, difference = False, cmap = 'turbo', log_norm = True, log_min = 5e-3):
     '''Plots the field at time t_i and saves the image in folder_path as a PNG.
@@ -36,8 +36,8 @@ def plot_field(field, config, folder_path, title, file_name, save_field = False,
     None
     '''
     cm = 1/2.54
-    plt.figure(figsize=(32*cm, 18*cm))
-    plt.title(title, fontsize = 20, y = 1.05)
+    fig, ax = plt.subplots(figsize=(32*cm, 18*cm))
+    ax.set_title(title, fontsize = 20, y = 1.05)
 
     # We use the symmetry of the solution to extend the domain to -d <= x <= d
     resized_field = resize_field(field) 
@@ -45,35 +45,39 @@ def plot_field(field, config, folder_path, title, file_name, save_field = False,
     # Plot the Field
     # Some nice options are gray and turbo 
     if log_norm and not difference:
-        im = plt.imshow(resized_field, cmap = cmap, norm=LogNorm(vmin=((config.d/config.l)**2)*log_min, vmax=(config.d/config.l)**2), interpolation = 'none')
+        im = ax.imshow(resized_field, cmap = cmap, norm=LogNorm(vmin=((config.d/config.l)**2)*log_min, vmax=(config.d/config.l)**2), interpolation = 'none')
     else:
-        im = plt.imshow(resized_field, cmap = cmap, vmin=0, vmax=(config.d/config.l)**2, interpolation = 'none')
+        im = ax.imshow(resized_field, cmap = cmap, vmin=0, vmax=(config.d/config.l)**2, interpolation = 'none')
 
-    # Label the X axis and set the ticks
-    plt.ylabel('Grating', fontsize = 18)
-    plt.ylim(0, 4 * config.N_x)
+    # Label the Y axis and set the ticks
+    ax.set_ylabel('Grating', fontsize = 18)
+    ax.set_ylim(0, 4 * config.N_x)
     ticks_x = [0, config.N_x-1, 2 * config.N_x - 1, 3 * config.N_x - 1, 4 * config.N_x - 1]
     labels_x = ['$-d$', '$-\\dfrac{d}{2}$', '$0$', '$\\dfrac{d}{2}$', '$d$']
-    plt.yticks(ticks_x, labels_x, fontsize = 16)
-    
-    # Label the Y axis and set the ticks
-    plt.xlabel('Propagation of light ---->', fontsize = 18)
-    plt.xlim(0, config.N_z - 1)
+    ax.set_yticks(ticks_x)
+    ax.set_yticklabels(labels_x, fontsize = 16)
+
+    # Label the X axis and set the ticks
+    ax.set_xlabel('Propagation of light $\longrightarrow$', fontsize = 18)
+    ax.set_xlim(0, config.N_z - 1)
     ticks_z = [0, config.N_z/4, config.N_z/2, 3 * config.N_z/4, config.N_z]
     labels_z = ['$0$', '$\\dfrac{1}{4} Z_T$', '$\\dfrac{1}{2} Z_T$', '$\\dfrac{3}{4} Z_T$', '$Z_T$']
-    plt.xticks(ticks_z, labels_z, fontsize = 16)
-    
+    ax.set_xticks(ticks_z)
+    ax.set_xticklabels(labels_z, fontsize = 16)
+
     # Add the colorbar
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes("right", size="3%", pad=0.1)
     if difference:
-        cbar = plt.colorbar(im, ticks=[-(config.d/config.l)**2, -(config.d/config.l)**2/2, 0., (config.d/config.l)**2/2, (config.d/config.l)**2], fraction = 0.0458 * config.N_z/(4 * config.N_x), pad = 0.04, shrink = 0.9)
+        cbar = fig.colorbar(im, cax=cax, ticks=[-(config.d/config.l)**2, -(config.d/config.l)**2/2, 0., (config.d/config.l)**2/2, (config.d/config.l)**2], fraction = 0.0458 * config.N_z/(4 * config.N_x), pad = 0.04, shrink = 0.9)
         cbar.set_label(label = 'Intensity of the field', fontsize = 18)
         cbar.ax.set_yticklabels(['$-A^2$', '$-\\dfrac{A^2}{2}$', '$0$', '$\\dfrac{A^2}{2}$', '$A^2$'], fontsize = 16)
     elif log_norm:
-        cbar = plt.colorbar(im, ticks=[log_min*(config.d/config.l)**2, 0.01*(config.d/config.l)**2, 0.1*(config.d/config.l)**2, (config.d/config.l)**2], fraction = 0.0458 * config.N_z/(4 * config.N_x), pad = 0.04, shrink = 0.9)
+        cbar = fig.colorbar(im, cax=cax, ticks=[log_min*(config.d/config.l)**2, 0.01*(config.d/config.l)**2, 0.1*(config.d/config.l)**2, (config.d/config.l)**2], fraction = 0.0458 * config.N_z/(4 * config.N_x), pad = 0.04, shrink = 0.9)
         cbar.set_label(label = 'Intensity of the field', fontsize = 18)
         cbar.ax.set_yticklabels(['$0$', '$0.01 \\cdot A^2$', '$0.1 \\cdot A^2$', '$A^2$'], fontsize = 16)
     else:
-        cbar = plt.colorbar(im, ticks=[0, 1/4*(config.d/config.l)**2, 1/2*(config.d/config.l)**2, 3/4*(config.d/config.l)**2, (config.d/config.l)**2], fraction = 0.0458 * config.N_z/(4 * config.N_x), pad = 0.04, shrink = 0.9)
+        cbar = fig.colorbar(im, cax=cax, ticks=[0, 1/4*(config.d/config.l)**2, 1/2*(config.d/config.l)**2, 3/4*(config.d/config.l)**2, (config.d/config.l)**2], fraction = 0.0458 * config.N_z/(4 * config.N_x), pad = 0.04, shrink = 0.9)
         cbar.set_label(label = 'Intensity of the field', fontsize = 18)
         cbar.ax.set_yticklabels(['$0$', '$\\frac{1}{4} A^2$', '$\\frac{1}{2} A^2$', '$\\frac{3}{4} A^2$', '$A^2$'], fontsize = 16)
     #cbar.set_label(label = 'Amplitude of the field', fontsize = 18)
@@ -118,7 +122,7 @@ def plot_field_pdf(field, config, folder_path, title, file_name, save_field = Fa
     None
     '''
     cm = 1/2.54
-    plt.figure(figsize=(32*cm, 18*cm))
+    fig, ax = plt.subplots(figsize=(32*cm, 18*cm))
 
     # We use the symmetry of the solution to extend the domain to -d <= x <= d
     resized_field = resize_field(field) 
@@ -126,35 +130,39 @@ def plot_field_pdf(field, config, folder_path, title, file_name, save_field = Fa
     # Plot the Field
     # Some nice options are gray and turbo 
     if log_norm and not difference:
-        im = plt.imshow(resized_field, cmap = cmap, norm=LogNorm(vmin=((config.d/config.l)**2)*log_min, vmax=(config.d/config.l)**2), interpolation = 'none')
+        im = ax.imshow(resized_field, cmap = cmap, norm=LogNorm(vmin=((config.d/config.l)**2)*log_min, vmax=(config.d/config.l)**2), interpolation = 'none')
     else:
-        im = plt.imshow(resized_field, cmap = cmap, vmin=0, vmax=(config.d/config.l)**2, interpolation = 'none')
+        im = ax.imshow(resized_field, cmap = cmap, vmin=0, vmax=(config.d/config.l)**2, interpolation = 'none')
 
     # Label the X axis and set the ticks
-    plt.ylabel('Grating', fontsize = 18)
-    plt.ylim(0, 4 * config.N_x)
+    ax.set_ylabel('Grating', fontsize = 18)
+    ax.set_ylim(0, 4 * config.N_x)
     ticks_x = [0, config.N_x-1, 2 * config.N_x - 1, 3 * config.N_x - 1, 4 * config.N_x - 1]
     labels_x = ['$-d$', '$-\\dfrac{d}{2}$', '$0$', '$\\dfrac{d}{2}$', '$d$']
-    plt.yticks(ticks_x, labels_x, fontsize = 16)
-    
+    ax.set_yticks(ticks_x)
+    ax.set_yticklabels(labels_x, fontsize = 16)
+
     # Label the Y axis and set the ticks
-    plt.xlabel('Propagation of light ---->', fontsize = 18)
-    plt.xlim(0, config.N_z - 1)
+    ax.set_xlabel('Propagation of light $\longrightarrow$', fontsize = 18)
+    ax.set_xlim(0, config.N_z - 1)
     ticks_z = [0, config.N_z/4, config.N_z/2, 3 * config.N_z/4, config.N_z]
     labels_z = ['$0$', '$\\dfrac{1}{4} Z_T$', '$\\dfrac{1}{2} Z_T$', '$\\dfrac{3}{4} Z_T$', '$Z_T$']
-    plt.xticks(ticks_z, labels_z, fontsize = 16)
-     
+    ax.set_xticks(ticks_z)
+    ax.set_xticklabels(labels_z, fontsize = 16)
+
     # Add the colorbar
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes("right", size="3%", pad=0.1)
     if difference:
-        cbar = plt.colorbar(im, ticks=[-(config.d/config.l)**2, -(config.d/config.l)**2/2, 0., (config.d/config.l)**2/2, (config.d/config.l)**2], fraction = 0.0458 * config.N_z/(4 * config.N_x), pad = 0.04, shrink = 0.9)
+        cbar = fig.colorbar(im, cax=cax, ticks=[-(config.d/config.l)**2, -(config.d/config.l)**2/2, 0., (config.d/config.l)**2/2, (config.d/config.l)**2], fraction = 0.0458 * config.N_z/(4 * config.N_x), pad = 0.04, shrink = 0.9)
         cbar.set_label(label = 'Intensity of the field', fontsize = 18)
         cbar.ax.set_yticklabels(['$-A^2$', '$-\\dfrac{A^2}{2}$', '$0$', '$\\dfrac{A^2}{2}$', '$A^2$'], fontsize = 16)
     elif log_norm:
-        cbar = plt.colorbar(im, ticks=[log_min*(config.d/config.l)**2, 0.01*(config.d/config.l)**2, 0.1*(config.d/config.l)**2, (config.d/config.l)**2], fraction = 0.0458 * config.N_z/(4 * config.N_x), pad = 0.04, shrink = 0.9)
+        cbar = fig.colorbar(im, cax=cax, ticks=[log_min*(config.d/config.l)**2, 0.01*(config.d/config.l)**2, 0.1*(config.d/config.l)**2, (config.d/config.l)**2], fraction = 0.0458 * config.N_z/(4 * config.N_x), pad = 0.04, shrink = 0.9)
         cbar.set_label(label = 'Intensity of the field', fontsize = 18)
         cbar.ax.set_yticklabels(['$0$', '$0.01 \\cdot A^2$', '$0.1 \\cdot A^2$', '$A^2$'], fontsize = 16)
     else:
-        cbar = plt.colorbar(im, ticks=[0, 1/4*(config.d/config.l)**2, 1/2*(config.d/config.l)**2, 3/4*(config.d/config.l)**2, (config.d/config.l)**2], fraction = 0.0458 * config.N_z/(4 * config.N_x), pad = 0.04, shrink = 0.9)
+        cbar = fig.colorbar(im, cax=cax, ticks=[0, 1/4*(config.d/config.l)**2, 1/2*(config.d/config.l)**2, 3/4*(config.d/config.l)**2, (config.d/config.l)**2], fraction = 0.0458 * config.N_z/(4 * config.N_x), pad = 0.04, shrink = 0.9)
         cbar.set_label(label = 'Intensity of the field', fontsize = 18)
         cbar.ax.set_yticklabels(['$0$', '$\\frac{1}{4} A^2$', '$\\frac{1}{2} A^2$', '$\\frac{3}{4} A^2$', '$A^2$'], fontsize = 16)
     #cbar.set_label(label = 'Amplitude of the field', fontsize = 18)
