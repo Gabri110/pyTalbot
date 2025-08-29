@@ -54,7 +54,9 @@ All of this can be sumarised through the figure
 ## The solution
 
 The solution to this problem can be written in closed form: 
+
 $$u(t,x,z) = \sum_n \hat{g}_n\left( \sin\omega (t-z) - k_n z \int_z^{t} \dfrac{J_1\left( k_n\sqrt{\tau^2-z^2} \right)}{\sqrt{\tau^2-z^2}} \sin\omega(t-\tau) \,d\tau \right) \theta(t-z) \cos{k_n x},$$
+
 which is what we plot. The RHS is mostly straightforward to compute, although certain approximations must be made:
   - The most obvious, we have to introduce an $N$ at which we truncate the series. We usually want to take $N \gg \frac{d}{ \lambda}$ to make sure that we take into account all the oscillatory behaviour.
   - We have to numerically approximate the integral. In order to do this, we use GSL's adaptative quadrature method, [QAG](https://www.gnu.org/software/gsl/doc/html/integration.html#qag-adaptive-integration). In case that QAG runs into problems, we use [CQUAD](https://www.gnu.org/software/gsl/doc/html/integration.html#cquad-doubly-adaptive-integration), a doubly-adaptative method, instead.
