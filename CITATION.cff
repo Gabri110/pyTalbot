@@ -21,12 +21,15 @@ abstract: >-
   This project's aim is to simulate the formation of the
   Talbot effect in the near field of an infinite periodic
   diffraction grating of Fourier coefficients gn. This
-  corresponds to the numeric part of the attached report.
+  corresponds to the numeric part of the paper "The Talbot
+  Effect as a Causal Initial–Boundary-Value Problem:
+  Formation, Stationary Limit and Paraxial Limit", whose
+  first version is the arXiv preprint 2507.00820,
+  "Deducing the Talbot Effect from Electrodynamics".
 keywords:
   - Talbot effect
   - Diffraction
   - Wave equation
 license: MIT
-commit: 96ec6d3
-version: v0.1
-date-released: '2025-03-07'
+version: v0.2
+date-released: '2026-11-07'
