@@ -24,6 +24,31 @@ python paper/convergence.py
 python paper/scan_rays.py
 ```
 
+## Numbers quoted in the paper
+
+The scripts in `paper/numbers/` recompute the numbers that the paper quotes in its text. Each line of their output gives the value of the paper, the recomputed value and whether they agree, that is, whether the recomputed value, rounded as the paper rounds it, is the value of the paper. For "about $N\%$" we accept $N \pm 1$ percentage points. The run times are on a laptop; `front_bands.py` and `formation_times.py` use four processes.
+
+| Script | Recomputes | Run time | Needs |
+|---|---|---|---|
+| `cj_constant.py` | The constant $C_J \approx 0.825$, $4\sqrt{31/10}\,C_J^2 \approx 4.79$ in (4.3) and $C(\omega,d) \approx 29\,\omega d/\lambda$ (Theorem 1, Appendix B) | 1 s | numpy, scipy |
+| `paraxial_errors.py` | The exact $L^2$ error of the paraxial approximation for sharp-edged slits, and its floor at fixed $l/\lambda$ (Section 6.2) | 1 s | numpy |
+| `peak_values.py` | The peaks of $\vert U\vert^2$ on the subimage planes and the Gibbs overshoot of the band-limited field (Section 5.2) | 10 s | numpy |
+| `front_bands.py` | The differences between the transient carpets of Figure 2 and the stationary one, by range of $z/t$ (Section 5.1) | 5 min, or seconds with `--coeffs` | numpy, scipy |
+| `dark_lines.py` | The mean intensity on the dark lines (7.3) of Figures 3(e) and 3(f) (Section 7.2) | 1 min | numpy |
+| `formation_times.py` | The mean-square error of Theorem 1 at a fixed depth against the bound (4.3), and $\omega z^2 = \pi z_T z^2/d^2$ (remark after Theorem 1) | 2 s | numpy, scipy |
+
+By default `front_bands.py` computes the coefficients on every 4th depth of the grid of Figure 2. With `--coeffs` it instead reads the file that `transient_snapshots.py` saves, which is on the full grid.
+
+```
+python paper/numbers/cj_constant.py
+python paper/numbers/paraxial_errors.py
+python paper/numbers/peak_values.py
+python paper/numbers/front_bands.py --stride 4
+python paper/numbers/front_bands.py --coeffs results/coeffs_d100_Nz1440x16_t0.25_0.5_0.75.npy
+python paper/numbers/dark_lines.py
+python paper/numbers/formation_times.py
+```
+
 ## Method
 
 The transient carpets use `pyTalbot/transient_fast.py`. It evaluates each mode $c_n(t,z)$ at a fixed time with a different method from `perform_integrals.py`, explained in Appendix C of the paper.
