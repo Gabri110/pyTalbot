@@ -1,10 +1,14 @@
-### pyTalbot
+# pyTalbot
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14988572.svg)](https://doi.org/10.5281/zenodo.14988572)
+
+![Stationary Talbot carpet for d/λ = 100 and l/λ = 5](./talbot_carpet.png "Stationary Talbot carpet with d/λ = 100 and l/λ = 5, Figure 3(e) of the paper. It is the output of paper/stationary_carpets.py.")
 
 This project's aim is to plot the formation of the Talbot effect in the near field of an infinite periodic diffraction grating of Fourier coefficients $\hat{g}_n$. This corresponds to the numeric part of the paper *The Talbot Effect as a Causal Initial–Boundary-Value Problem: Formation, Stationary Limit and Paraxial Limit*. Its first version is the arXiv preprint [2507.00820](https://arxiv.org/abs/2507.00820), under the title *Deducing the Talbot Effect from Electrodynamics*. The section, equation and figure numbers below refer to the current version of the paper.
 
 ## Requirements
 
-# With Docker
+### With Docker
 It is recommended to use [Docker](https://www.docker.com/) to install the dependencies and run the script. After having it installed, just create an image with the provided Dockerfile and run the script from the container. To compile the C libraries, run the following from the main folder,
 ```
 cd pyTalbot/src
@@ -12,13 +16,13 @@ make
 ```
 
 
-# Without Docker
+### Without Docker
 In order to get all the python required libraries, you may run from the main folder
 ```
 pip install -r requirements.txt
 ```
 
-It is also necessary to compile the C libraries used for integration. For this you need GSL and OpenMPI. You may install them from the terminal in Ubundu and Debian through `sudo apt install gsl` and `sudo apt install openmpi`, and on macOS through `brew install gsl` and `brew install openmpi`.
+It is also necessary to compile the C libraries used for integration. For this you need GSL and OpenMPI. You may install them from the terminal in Ubuntu and Debian through `sudo apt install libgsl-dev` and `sudo apt install libopenmpi-dev`, and on macOS through `brew install gsl` and `brew install openmpi`.
 
 To compile the libraries, run the following from the main folder,
 ```
@@ -28,7 +32,7 @@ make
 
 In order to be able to create the video, it is indispensable to have [FFmpeg](https://www.ffmpeg.org/) installed.
 
-You may install it from the terminal in Ubundu and Debian through `sudo apt install ffmpeg` and on macOS through `brew install ffmpeg`.
+You may install it from the terminal in Ubuntu and Debian through `sudo apt install ffmpeg` and on macOS through `brew install ffmpeg`.
 
 ## The problem
 
@@ -36,7 +40,7 @@ This project plots the solution to the 2D wave equation (Section 2 of the paper)
 
 $$\partial_{tt} u = \partial_{xx} u + \partial_{zz} u$$
 
-in the domain $0 < x < d/2$, $z > 0$, $t > 0$ under the border conditions in $x$
+in the domain $0 < x < d/2$, $z > 0$, $t > 0$ under the boundary conditions in $x$
 
 $$\left.\partial_x u\right\vert_{x=0} = \left.\partial_x u\right\vert_{x=d/2} = 0,$$
 
@@ -50,7 +54,7 @@ $$u(t=0) = 0,\quad\text{and,}\quad \partial_t u(t=0) = 0.$$
 
 We use units with $c = 1$, so that $\omega = 2\pi/\lambda$. For the grating we take, as in Section 5 of the paper, a slit of width $l$ centred at $x = 0$ which transmits light of amplitude $A d/l$, that is, $g(x) = A d/l$ for $\vert x\vert < l/2$ and $g(x) = 0$ for $l/2 < \vert x\vert \leq d/2$. Its Fourier coefficients are $\hat{g}_0 = A$ and $\hat{g}_n = A \frac{d}{l} \frac{\sin(n\pi l/d)}{n\pi}$, which tend to $A$ as $l \to 0$.
 
-All of this can be sumarised through the figure
+All of this can be summarised through the figure
 ![Alt text](./problem_statement.jpeg "Figure 1: Sketch of the differential equation and boundary conditions obeyed by the system.")
 
 ## The solution
@@ -90,8 +94,8 @@ The folder `paper/` holds the scripts that reproduce the figures and the table o
 We are including a SLURM file for those interested in running the simulation on a cluster. Furthermore, the code is compatible with both OpenMP and MPI to speed up the computations when available.
 
 
-## Aknowledgements
+## Acknowledgements
 
-This project was developped by Gabriel María Ybarra Marcaida under the supervision of [Luis Vega González](https://www.bcamath.org/en/people/bcam-members/lvega) during the authour's research internship at the [Basque Centre for Applied Mathematics](https://www.bcamath.org/en) in between November 2024 and February 2025.
+This project was developed by Gabriel María Ybarra Marcaida under the supervision of [Luis Vega González](https://www.bcamath.org/en/people/bcam-members/lvega) during the author's research internship at the [Basque Centre for Applied Mathematics](https://www.bcamath.org/en) between November 2024 and February 2025.
 
-The authour would like to thank @miguelfrndz and @pcardenal5 with their help with programming issues throughout the development of the project.
+The author would like to thank @miguelfrndz and @pcardenal5 with their help with programming issues throughout the development of the project.
