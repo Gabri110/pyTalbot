@@ -55,7 +55,7 @@ $$u(t=0) = 0,\quad\text{and,}\quad \partial_t u(t=0) = 0.$$
 We use units with $c = 1$, so that $\omega = 2\pi/\lambda$. For the grating we take, as in Section 5 of the paper, a slit of width $l$ centred at $x = 0$ which transmits light of amplitude $A d/l$, that is, $g(x) = A d/l$ for $\vert x\vert < l/2$ and $g(x) = 0$ for $l/2 < \vert x\vert \leq d/2$. Its Fourier coefficients are $\hat{g}_0 = A$ and $\hat{g}_n = A \frac{d}{l} \frac{\sin(n\pi l/d)}{n\pi}$, which tend to $A$ as $l \to 0$.
 
 All of this can be summarised through the figure
-![Alt text](./problem_statement.jpeg "Figure 1: Sketch of the differential equation and boundary conditions obeyed by the system.")
+![Sketch of the differential equation and boundary conditions obeyed by the system](./problem_statement.jpeg "Figure 1: Sketch of the differential equation and boundary conditions obeyed by the system.")
 
 ## The solution
 
@@ -65,7 +65,7 @@ $$u(t,x,z) = \sum_{n\in\mathbb{Z}} \hat{g}_n\left( \sin\omega (t-z) - k_n z \int
 
 where $k_n = 2\pi n/d$. This is what we plot. The RHS is mostly straightforward to compute, although certain approximations must be made:
   - The most obvious, we have to introduce an $N$ at which we truncate the series. As in the paper, we keep the terms with $\vert n\vert < N = 5\, \frac{d}{\lambda}$, which include all the propagating modes, $\vert k_n\vert \leq \omega$, and the first evanescent ones.
-  - We have to numerically approximate the integral. In order to do this, we use GSL's adaptative quadrature method, [QAG](https://www.gnu.org/software/gsl/doc/html/integration.html#qag-adaptive-integration). In case that QAG runs into problems, we use [CQUAD](https://www.gnu.org/software/gsl/doc/html/integration.html#cquad-doubly-adaptive-integration), a doubly-adaptative method, instead.
+  - We have to numerically approximate the integral. In order to do this, we use GSL's adaptive quadrature method, [QAG](https://www.gnu.org/software/gsl/doc/html/integration.html#qag-adaptive-integration). In case that QAG runs into problems, we use [CQUAD](https://www.gnu.org/software/gsl/doc/html/integration.html#cquad-doubly-adaptive-integration), a doubly-adaptive method, instead.
 
 After calculating $u(t,x,z)$ on a grid, we plot it and make an .mp4 video to showcase the transient behaviour of the Talbot effect.
 
@@ -98,4 +98,4 @@ We are including a SLURM file for those interested in running the simulation on 
 
 This project was developed by Gabriel María Ybarra Marcaida under the supervision of [Luis Vega González](https://www.bcamath.org/en/people/bcam-members/lvega) during the author's research internship at the [Basque Centre for Applied Mathematics](https://www.bcamath.org/en) between November 2024 and February 2025.
 
-The author would like to thank @miguelfrndz and @pcardenal5 with their help with programming issues throughout the development of the project.
+The author would like to thank @miguelfrndz and @pcardenal5 for their help with programming issues throughout the development of the project.
