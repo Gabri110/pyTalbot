@@ -128,7 +128,7 @@ void compute_integrals(double* partial_integral_cos, double* partial_integral_si
                 if (status) {
                                 status = gsl_integration_cquad(&func_sin, x_min[t*z_size+z], x_max[t*z_size+z], 
                                     epsabs, epsrel, workspace_cquad, 
-                                    &partial_integral_cos[((n-start) * t_size+t)*z_size+z], NULL, NULL);
+                                    &partial_integral_sin[((n-start) * t_size+t)*z_size+z], NULL, NULL);
 
                                 if (status) {
                                     stream = fopen("clog.txt", "a");
